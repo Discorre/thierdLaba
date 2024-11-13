@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
+    },
+
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "D:/scripts/buildsystems/vcpkg.cmake"
+    },
+    "cmake.generator": "Visual Studio 16 2019",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.configureOnOpen": true,
+    "cmake.buildBeforeRun": true
+}
