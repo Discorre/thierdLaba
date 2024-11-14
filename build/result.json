@@ -1,0 +1,84 @@
+{
+  "context": {
+    "date": "2024-11-13T22:27:36+07:00",
+    "host_name": "debian",
+    "executable": "./mylist_benchmark",
+    "num_cpus": 4,
+    "mhz_per_cpu": 2400,
+    "cpu_scaling_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 262144,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 8388608,
+        "num_sharing": 1
+      }
+    ],
+    "load_avg": [2.4624,2.47607,2.15332],
+    "library_version": "v1.9.0-21-g62a321d6",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "BM_PushBack/1000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PushBack/1000",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 11789427,
+      "real_time": 7.3935454539038517e+01,
+      "cpu_time": 6.6100430580722886e+01,
+      "time_unit": "ns"
+    },
+    {
+      "name": "BM_Find/500",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "BM_Find/500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 432103,
+      "real_time": 1.6816933485769587e+03,
+      "cpu_time": 1.6518907852988757e+03,
+      "time_unit": "ns"
+    },
+    {
+      "name": "BM_Remove/500",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "BM_Remove/500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 129071,
+      "real_time": 4.5612902665974098e+03,
+      "cpu_time": 4.0986591255975409e+03,
+      "time_unit": "ns"
+    }
+  ]
+}

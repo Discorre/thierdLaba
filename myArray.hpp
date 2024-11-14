@@ -1,6 +1,9 @@
 #ifndef MYARRAY_HPP
 #define MYARRAY_HPP
 
+#include <iostream>
+#include <fstream>
+
 template <typename T>
 class MyArray {
 private:

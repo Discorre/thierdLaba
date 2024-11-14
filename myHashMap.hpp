@@ -36,7 +36,9 @@ public:
             return value;
         }
         else {
-            throw std::out_of_range("Key not found");
+            //throw std::out_of_range("Key not found");
+            std::cout << "Key not found" << std::endl;
+            return NULL;
         }
     }
 
@@ -49,14 +51,18 @@ public:
             std::cout << "Not robuit" << std::endl;
         }
     }
-
+    
     // Метод для удаления элемента по ключу (HDEL)
     void HDEL(const K& key) {
-        if (!table[hash(key)].remove(key)) {
-            throw std::out_of_range("Key not found");
+        int index = hash(key);
+        V value{};
+        if (table[index].find(key, value)) {  // Проверяем существование ключа
+            table[index].remove(key);
+        } else {
+            //throw std::out_of_range("Key not found");
+            std::cout << "Key not found" << std::endl;
         }
     }
-
     // Метод для печати хеш-таблицы
     void print() const {
         for (int i = 0; i < capacity; i++) {
@@ -66,26 +72,30 @@ public:
         std::cout << std::endl;
     }
 
-    // Сохранение хеш-таблицы в файл
     void saveToFile(const std::string& filename) const {
         std::ofstream file(filename);
         if (!file) {
             throw std::runtime_error("Unable to open file for writing");
         }
         for (int i = 0; i < capacity; i++) {
-            // Получаем список из текущей корзины
-            MyList<K, V> bucket = table[i];
+            // Проверяем, содержит ли текущий список данные
+            MyList<K, V>& bucket = table[i];
+            if (bucket.size() == 0) {
+                continue; // Переходим к следующему списку, если данных нет
+            }
+
             // Сохраняем все пары ключ-значение из корзины в файл
             for (int j = 0; j < bucket.size(); j++) {
                 K key;
                 V value;
-                if (bucket.findAt(j, key, value)) {
+                if (bucket.findAt(j, key, value)) { // Проверяем, что элемент найден
                     file << key << " " << value << "\n";
                 }
             }
         }
         file.close();
     }
+
 
     // Загрузка хеш-таблицы из файла
     void loadFromFile(const std::string& filename) {
@@ -94,13 +104,16 @@ public:
             throw std::runtime_error("Unable to open file for reading");
         }
         clear(); // Очищаем текущую хеш-таблицу перед загрузкой
+
         K key;
         V value;
-        while (file >> key >> value) {
+        while (file >> key >> value) { // Чтение ключей и значений из файла
             HSET(key, value); // Добавляем пары ключ-значение в хеш-таблицу
         }
+
         file.close();
     }
+
 
     // Очистка хеш-таблицы
     void clear() {

@@ -1,62 +1,49 @@
-# Имя исполняемого файла(для Windows)
-#TARGET = a.exe
+# Имя основного исполняемого файла
+TARGET = benchmark_main
 
-# Имя исполняемого файла(для Linux)
-TARGET = a.out
-
-# Имя исполняемого файла для тестов
-TEST_TARGET = test_a.out
-
-# Список исходных файлов .cpp
-SRCS = mainMenu.cpp
-
-# Список исходных файлов для тестов
-TEST_SRCS = mainMenu_test.cpp
-
-# Список заголовочных файлов .h и .hpp
-#HDRS = myListKV.hpp myVector.hpp mySinglyLinkedList.hpp myArray.hpp myDoublyLinkedList.hpp myQueue.hpp myStack.hpp 
-
-# Список объектных файлов .o, которые будут созданы
-OBJS = $(SRCS:.cpp=.o)
-
-# Список объектных файлов для тестов
-TEST_OBJS = $(TEST_SRCS:.cpp=.o)
-
-# Флаги компиляции
-CXXFLAGS = -Wall -Wextra -std=c++17
-
-# Флаги для компиляции тестов
-TEST_CXXFLAGS = $(CXXFLAGS) -isystem googletest/googletest/include -isystem googletest/googlemock/include
-
-# Компилятор
+# Компилятор и флаги компиляции с покрытием
 CXX = g++
+CXXFLAGS = -std=c++17 -g -O0 -fprofile-arcs -ftest-coverage
 
-# Правило для сборки исполняемого файла
-$(TARGET): $(OBJS)
-    $(CXX) $(OBJS) -o $(TARGET)
+# Источники и заголовочные файлы
+SRC = benchmark.cpp  # Замените на ваш файл с main
+HEADERS = MyListKV.hpp MyArray.hpp
+OBJ = $(SRC:.cpp=.o)
 
-# Правило для компиляции каждого .cpp файла в .o файл
-%.o: %.cpp
-    $(CXX) $(CXXFLAGS) -c $< -o $@
+# Директория для отчетов о покрытии
+COVERAGE_DIR = coverage_report
 
-# Правило для сборки исполняемого файла тестов
-$(TEST_TARGET): $(TEST_OBJS) $(OBJS)
-    $(CXX) $(TEST_OBJS) $(OBJS) -o $(TEST_TARGET) -L googletest/build/lib -lgtest -lgtest_main -lpthread
+# Цель по умолчанию
+all: $(TARGET)
 
-# Правило для компиляции каждого .cpp файла тестов в .o файл
-%.o: %.cpp
-    $(CXX) $(TEST_CXXFLAGS) -c $< -o $@
+# Сборка основного исполняемого файла
+$(TARGET): $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) -L/usr/local/lib -lbenchmark -lpthread
 
-# Правило для очистки объектных файлов и исполняемого файла
+# Компиляция файлов объекта
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Запуск тестов и генерация отчета о покрытии
+coverage: clean $(TARGET)
+	# Запуск бенчмарка для сбора данных покрытия
+	./$(TARGET)
+
+	# Создание директории для покрытия, если она не существует
+	mkdir -p $(COVERAGE_DIR)
+
+	# Сбор покрытия с использованием lcov
+	lcov --capture --directory . --output-file $(COVERAGE_DIR)/coverage.info
+
+	# Фильтрация системных файлов и библиотек
+	lcov --remove $(COVERAGE_DIR)/coverage.info '/usr/*' --output-file $(COVERAGE_DIR)/coverage_filtered.info
+
+	# Генерация пофайловых HTML-отчетов
+	genhtml $(COVERAGE_DIR)/coverage_filtered.info --output-directory $(COVERAGE_DIR) --demangle-cpp --show-details
+
+	@echo "HTML-отчет о покрытии создан в $(COVERAGE_DIR)/index.html"
+
+# Очистка скомпилированных файлов и отчетов о покрытии
 clean:
-    rm -f $(OBJS) $(TARGET) $(TEST_OBJS) $(TEST_TARGET)
-
-# Правило для перекомпиляции всего проекта
-rebuild: clean $(TARGET)
-
-# Правило для запуска тестов
-test: $(TEST_TARGET)
-    ./$(TEST_TARGET)
-
-# Правило по умолчанию
-.PHONY: all clean rebuild test
+	rm -f $(TARGET) *.o *.gcda *.gcno
+	rm -rf $(COVERAGE_DIR)

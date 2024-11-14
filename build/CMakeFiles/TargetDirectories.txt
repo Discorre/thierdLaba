@@ -1,0 +1,3 @@
+/home/discorre/vscodeproj/thierdLaba/build/CMakeFiles/mylist_benchmark.dir
+/home/discorre/vscodeproj/thierdLaba/build/CMakeFiles/edit_cache.dir
+/home/discorre/vscodeproj/thierdLaba/build/CMakeFiles/rebuild_cache.dir
