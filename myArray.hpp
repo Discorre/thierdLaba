@@ -49,7 +49,8 @@ public:
     // Метод для удаления элемента по индексу
     void MDEL(int index) {
         if (index < 0 || index >= length) {
-            throw std::out_of_range("Index out of range");
+            //throw std::out_of_range("Index out of range");
+            std::cout << "Error: Index out of range" << std::endl;
         }
         // Сдвиг элементов влево, чтобы заполнить пробел
         for (int i = index; i < length - 1; ++i) {
@@ -61,7 +62,8 @@ public:
     // Метод для получения элемента по индексу (неконстантная версия)
     T& MGET(int index) {
         if (index < 0 || index >= length) {
-            throw std::out_of_range("Index out of range");
+            //throw std::out_of_range("Index out of range");
+            std::cout << "Error: Index out of range" << std::endl;
         }
         return data[index]; // Возвращаем элемент
     }
@@ -69,7 +71,8 @@ public:
     // Константная версия метода MGET
     const T& MGET(int index) const {
         if (index < 0 || index >= length) {
-            throw std::out_of_range("Index out of range");
+            //throw std::out_of_range("Index out of range");
+            std::cout << "Error: Index out of range" << std::endl;
         }
         return data[index]; // Возвращаем элемент
     }
@@ -77,7 +80,8 @@ public:
     // Метод для замены элемента по индексу
     void MRESET(int index, const T& element) {
         if (index < 0 || index >= length) {
-            throw std::out_of_range("Index out of range");
+            //throw std::out_of_range("Index out of range");
+            std::cout << "Error: Index out of range" << std::endl;
         }
         data[index] = element; // Замена элемента
     }
@@ -102,7 +106,8 @@ public:
     void saveToFile(const std::string& filename) const {
         std::ofstream file(filename);
         if (!file) {
-            throw std::runtime_error("Unable to open file for writing");
+            //throw std::runtime_error("Unable to open file for writing");
+            std::cout << "Error: Unable to open file for writing" << std::endl;
         }
         for (size_t i = 0; i < length; ++i) {
             file << data[i] << "\n";

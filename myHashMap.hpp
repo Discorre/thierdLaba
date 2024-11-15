@@ -38,7 +38,6 @@ public:
         else {
             //throw std::out_of_range("Key not found");
             std::cout << "Key not found" << std::endl;
-            return NULL;
         }
     }
 
