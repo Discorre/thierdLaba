@@ -53,44 +53,7 @@ private:
         return search(node->left, value) || search(node->right, value);
     }
 
-    // Вспомогательная функция для удаления элемента (удаление узлов с учетом 2 потомков)
-    Node<T>* deleteNode(Node<T>* node, T value) {
-        if (node == nullptr) {
-            return nullptr;
-        }
-
-        // Поиск удаляемого узла
-        if (node->data == value) {
-            // Если у узла нет потомков
-            if (node->left == nullptr && node->right == nullptr) {
-                delete node;
-                return nullptr;
-            }
-
-            // Если только один потомок
-            if (node->left == nullptr) {
-                Node<T>* temp = node->right;
-                delete node;
-                return temp;
-            }
-            else if (node->right == nullptr) {
-                Node<T>* temp = node->left;
-                delete node;
-                return temp;
-            }
-
-            // Если 2 потомка, находим минимальное значение в правом поддереве
-            Node<T>* minNode = findMin(node->right);
-            node->data = minNode->data;
-            node->right = deleteNode(node->right, minNode->data);
-        }
-        else {
-            node->left = deleteNode(node->left, value);
-            node->right = deleteNode(node->right, value);
-        }
-
-        return node;
-    }
+    
 
     // Вспомогательная функция для поиска минимального значения
     Node<T>* findMin(Node<T>* node) {
@@ -156,6 +119,45 @@ public:
     ~FullBinaryTree() {
         clear(root);
     }
+    
+    // Вспомогательная функция для удаления элемента (удаление узлов с учетом 2 потомков)
+    Node<T>* deleteNode(Node<T>* node, T value) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+
+        // Поиск удаляемого узла
+        if (node->data == value) {
+            // Если у узла нет потомков
+            if (node->left == nullptr && node->right == nullptr) {
+                delete node;
+                return nullptr;
+            }
+
+            // Если только один потомок
+            if (node->left == nullptr) {
+                Node<T>* temp = node->right;
+                delete node;
+                return temp;
+            }
+            else if (node->right == nullptr) {
+                Node<T>* temp = node->left;
+                delete node;
+                return temp;
+            }
+
+            // Если 2 потомка, находим минимальное значение в правом поддереве
+            Node<T>* minNode = findMin(node->right);
+            node->data = minNode->data;
+            node->right = deleteNode(node->right, minNode->data);
+        }
+        else {
+            node->left = deleteNode(node->left, value);
+            node->right = deleteNode(node->right, value);
+        }
+
+        return node;
+    }
 
     // Очистка дерева
     void clear(Node<T>* node) {
@@ -189,7 +191,13 @@ public:
 
     // Проверка на полноту дерева
     bool isFull() const {
-        return isFull(root);
+        if (root != nullptr) {
+            return isFull(root);
+        }
+        else{
+            //std::cout << "Tree is empty, no root element." << std::endl;
+            return true;
+        }
     }
 
     // Сохранение дерева в файл
@@ -211,6 +219,19 @@ public:
         clear(root);  // Очищаем текущее дерево перед загрузкой
         root = loadPreOrder(file);  // Загружаем дерево из файла
         file.close();
+    }
+
+    // Вывод корневого элемента
+    void printRoot() const {
+        if (root != nullptr) {
+            std::cout << "Root element: " << root->data << std::endl;
+        }
+    }
+
+    Node<T>* getRoot(){
+        if (root != nullptr){
+            return root;
+        }
     }
 };
 

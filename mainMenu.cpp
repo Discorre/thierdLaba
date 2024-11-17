@@ -215,7 +215,7 @@ static void treeMenu() {
     char choice;
     int value;
     std::string filename;
-    FullBinaryTree<int> tree;
+    MyFullBinaryTree<int> tree;
     do {
         std::cout << "[T] Дерево\n1. TINSERT\n2. TDEL\n3. TGET\n4. LOADFROMFILE\n5. SAVETOFILE\n6. Назад\nВаш выбор: ";
         std::cin >> choice;

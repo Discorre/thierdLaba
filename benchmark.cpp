@@ -4,6 +4,12 @@
 #include "myHashMap.hpp"
 #include "myVector.hpp"
 #include "myQueue.hpp"
+#include "myStack.hpp"
+#include "mySinglyLinkedList.hpp"
+#include "myDoublyLinkedList.hpp"
+#include "myFullBinaryTree.hpp"
+#include <iostream>
+#include <random>
 #include <string>
 #include <cstdlib>
 
@@ -123,7 +129,6 @@ static void BM_MyArray_ConstMGET(benchmark::State& state) {
     restoreOutput();
 }
 BENCHMARK(BM_MyArray_ConstMGET)->Range(1 << 10, 1 << 20);
-
 
 // Benchmark для замены элемента по индексу
 static void BM_MyArray_MRESET(benchmark::State& state) {
@@ -256,6 +261,25 @@ static void BM_HashMap_LoadFromFile(benchmark::State& state) {
     }
 }
 BENCHMARK(BM_HashMap_LoadFromFile)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода print в HashMap для малых значений
+static void BM_MyHashMap_Print_Small(benchmark::State& state) {
+    MyHashMap<std::string, int> hashMap;
+    suppressOutput();
+    
+    // Заполняем HashMap малым количеством элементов
+    for (int i = 0; i < state.range(0); ++i) {
+        hashMap.HSET("key" + std::to_string(i), i);
+    }
+
+    for (auto _ : state) {
+        hashMap.print();
+    }
+
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyHashMap_Print_Small)->Range(8, 1 << 8)->Complexity();
 
 // ==== Benchmarks for MyVector ====
 
@@ -553,6 +577,605 @@ static void BM_Queue_print(benchmark::State& state) {
     restoreOutput();
 }
 BENCHMARK(BM_Queue_print)->Range(1 << 10, 1 << 12);
+
+// ==== Benchmarks for MyStack ====
+
+// Benchmark для добавления элементов в стек
+static void BM_MyStack_SPUSH(benchmark::State& state) {
+    MyStack<int> myStack;
+    suppressOutput();
+    for (auto _ : state) {
+        myStack.SPUSH(42); // Добавляем элемент
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_SPUSH)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для удаления элементов из стека
+static void BM_MyStack_SDEL(benchmark::State& state) {
+    MyStack<int> myStack;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Предварительно заполняем стек
+    }
+    for (auto _ : state) {
+        myStack.SDEL(); // Удаляем элементы
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_SDEL)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для чтения верхнего элемента стека
+static void BM_MyStack_SPOP(benchmark::State& state) {
+    MyStack<int> myStack;
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Заполняем стек
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(myStack.SPOP()); // Читаем верхний элемент
+    }
+    myStack.clear(); // Очищаем стек
+    suppressOutput();
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(myStack.SPOP()); // Читаем верхний элемент
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_SPOP)->Range(1 << 10, 1 << 20)->Complexity();
+
+
+// Benchmark для очистки стека
+static void BM_MyStack_Clear(benchmark::State& state) {
+    MyStack<int> myStack;
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Заполняем стек
+    }
+    for (auto _ : state) {
+        myStack.clear(); // Очищаем стек
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_Clear)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для сохранения стека в файл
+static void BM_MyStack_SaveToFile(benchmark::State& state) {
+    MyStack<int> myStack;
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Заполняем стек
+    }
+    for (auto _ : state) {
+        myStack.saveToFile("stack_data.txt"); // Сохраняем в файл
+    }
+    std::remove("stack_data.txt"); // Удаляем файл после теста
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_SaveToFile)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для загрузки стека из файла
+static void BM_MyStack_LoadFromFile(benchmark::State& state) {
+    MyStack<int> myStack;
+    {
+        // Создаем тестовый файл
+        std::ofstream outFile("stack_data.txt");
+        for (int i = 0; i < state.range(0); ++i) {
+            outFile << i << "\n";
+        }
+    }
+    for (auto _ : state) {
+        myStack.loadFromFile("stack_data.txt"); // Загружаем из файла
+    }
+    std::remove("stack_data.txt"); // Удаляем файл после теста
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_LoadFromFile)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для метода print
+static void BM_MyStack_Print(benchmark::State& state) {
+    MyStack<int> myStack;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Заполняем стек
+    }
+    for (auto _ : state) {
+        myStack.print(); // Печать содержимого
+    }
+    myStack.clear(); // Очищаем стек
+    for (auto _ : state) {
+        myStack.print(); // Печать содержимого
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_Print)->Range(1 << 10, 1 << 20)->Complexity();
+
+// Benchmark для метода size
+static void BM_MyStack_Size(benchmark::State& state) {
+    MyStack<int> myStack;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        myStack.SPUSH(i); // Заполняем стек
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(myStack.size()); // Получение размера
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyStack_Size)->Range(1 << 10, 1 << 20)->Complexity();
+
+// ==== Benchmarks for MySinglyLinkedList ====
+
+// Benchmark для метода LPUSHHEAD
+static void BM_MySinglyLinkedList_LPUSHHEAD(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (auto _ : state) {
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHHEAD(i);
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LPUSHHEAD)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LPUSHTAIL
+static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (auto _ : state) {
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHTAIL(i);
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LPUSHTAIL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDELHEAD
+static void BM_MySinglyLinkedList_LDELHEAD(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        while (list.getSize() > 0) {
+            list.LDELHEAD();
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LDELHEAD)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDELTAIL
+static void BM_MySinglyLinkedList_LDELTAIL(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        while (list.getSize() > 0) {
+            list.LDELTAIL();
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LDELTAIL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDEL
+static void BM_MySinglyLinkedList_LDEL(benchmark::State& state) {
+    for (auto _ : state) {
+        MySinglyLinkedList<int> list;
+        // Заполнение списка
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHTAIL(i);
+        }
+
+        // Удаление элементов по индексу (удаляем элементы в случайных местах)
+        for (int i = 0; i < state.range(0); ++i) {
+            int index = (i % list.getSize());  // Получаем валидный индекс
+            list.LDEL(index);
+        }
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LDEL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода contains
+static void BM_MySinglyLinkedList_Contains(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.contains(state.range(0) - 1));
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_Contains)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LGET
+static void BM_MySinglyLinkedList_LGET(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.LGET(state.range(0) / 2));
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_LGET)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода print
+static void BM_MySinglyLinkedList_Print(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        list.print();
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_Print)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода getSize
+static void BM_MySinglyLinkedList_GetSize(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.getSize());
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_GetSize)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для методов saveToFile и loadFromFile
+static void BM_MySinglyLinkedList_SaveLoadFile(benchmark::State& state) {
+    MySinglyLinkedList<int> list;
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        list.saveToFile("mysinglylinkedlist_test.txt");
+        list.loadFromFile("mysinglylinkedlist_test.txt");
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MySinglyLinkedList_SaveLoadFile)->Range(8, 1 << 8)->Complexity();
+
+// ==== Benchmarks for MyDoublyLinkedList ====
+
+// Benchmark для метода LPUSHHEAD
+static void BM_MyDoublyLinkedList_LPUSHHEAD(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (auto _ : state) {
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHHEAD(i);
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LPUSHHEAD)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LPUSHTAIL
+static void BM_MyDoublyLinkedList_LPUSHTAIL(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (auto _ : state) {
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHTAIL(i);
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LPUSHTAIL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDELHEAD
+static void BM_MyDoublyLinkedList_LDELHEAD(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        while (list.getSize() > 0) {
+            list.LDELHEAD();
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LDELHEAD)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDELTAIL
+static void BM_MyDoublyLinkedList_LDELTAIL(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        while (list.getSize() > 0) {
+            list.LDELTAIL();
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LDELTAIL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LDEL (удаление по индексу)
+static void BM_MyDoublyLinkedList_LDEL(benchmark::State& state) {
+    suppressOutput();
+    for (auto _ : state) {
+        MyDoublyLinkedList<int> list;
+        for (int i = 0; i < state.range(0); ++i) {
+            list.LPUSHTAIL(i);
+        }
+        for (int i = 0; i < state.range(0); ++i) {
+            int index = (i % list.getSize());
+            list.LDEL(index);
+        }
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LDEL)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода contains
+static void BM_MyDoublyLinkedList_Contains(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.contains(state.range(0) - 1));
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_Contains)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода LGET
+static void BM_MyDoublyLinkedList_LGET(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.LGET(state.range(0) / 2));
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_LGET)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода print
+static void BM_MyDoublyLinkedList_Print(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        list.print();
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_Print)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для метода getSize
+static void BM_MyDoublyLinkedList_GetSize(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(list.getSize());
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_GetSize)->Range(8, 1 << 8)->Complexity();
+
+// Benchmark для методов saveToFile и loadFromFile
+static void BM_MyDoublyLinkedList_SaveLoadFile(benchmark::State& state) {
+    MyDoublyLinkedList<int> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL(i);
+    }
+    for (auto _ : state) {
+        list.saveToFile("mydoublylinkedlist_test.txt");
+        list.loadFromFile("mydoublylinkedlist_test.txt");
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_MyDoublyLinkedList_SaveLoadFile)->Range(8, 1 << 8)->Complexity();
+
+// ==== Benchmarks for MyFullBinaryTree ====
+
+// Бенчмарк для функции TINSERT
+static void BM_TINSERT(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    for (auto _ : state) {
+        for (int i = 0; i < state.range(0); ++i) {
+            tree.TINSERT(i);
+        }
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_TINSERT)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции TDEL
+static void BM_TDEL(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        tree.TDEL(state.range(0) - 1);
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_TDEL)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции TGET
+static void BM_TGET(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(tree.TGET(state.range(0) - 1));
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_TGET)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции print
+static void BM_PRINT(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        tree.print();
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_PRINT)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции isFull
+static void BM_ISFULL(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        tree.isFull();
+    }
+    FullBinaryTree<int> tree2;
+    tree2.isFull();
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_ISFULL)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции saveToFile
+static void BM_SAVETOFILE(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        tree.saveToFile("benchmark_tree.txt");
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_SAVETOFILE)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для функции loadFromFile
+static void BM_LOADFROMFILE(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    tree.saveToFile("benchmark_tree.txt");
+    for (auto _ : state) {
+        tree.loadFromFile("benchmark_tree.txt");
+    }
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_LOADFROMFILE)->Range(8, 1<<8)->Complexity();
+
+static void BM_PRINTROOT(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        tree.printRoot();
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_PRINTROOT)->Range(8, 1<<8)->Complexity();
+
+static void BM_GETROOT(benchmark::State& state) {
+    FullBinaryTree<int> tree;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        tree.TINSERT(i);
+    }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(tree.getRoot());
+    }
+    restoreOutput();
+    state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_GETROOT)->Range(8, 1<<8)->Complexity();
+
+// Бенчмарк для удаления узла с одним потомком
+static void BM_TDELOneChild(benchmark::State& state) {
+    for (auto _ : state) {
+        FullBinaryTree<int> tree;
+        tree.TINSERT(50);
+        tree.TINSERT(30);
+        tree.TINSERT(70);
+        tree.TINSERT(20);
+        
+        // Удаляем узел с одним потомком
+        tree.TDEL(30);
+    }
+}
+BENCHMARK(BM_TDELOneChild);
+
+// Бенчмарк для удаления узла с двумя потомками
+static void BM_TDELTwoChildren(benchmark::State& state) {
+    for (auto _ : state) {
+        FullBinaryTree<int> tree;
+        tree.TINSERT(50);
+        tree.TINSERT(30);
+        tree.TINSERT(70);
+        tree.TINSERT(20);
+        tree.TINSERT(40);
+        
+        // Удаляем узел с двумя потомками
+        tree.TDEL(30);
+    }
+}
+BENCHMARK(BM_TDELTwoChildren);
 
 // ==== Main Function to Run All Benchmarks ====
 

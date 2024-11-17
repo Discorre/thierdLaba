@@ -30,7 +30,8 @@ public:
     // Метод для удаления элемента из стека
     void SDEL() {
         if (length == 0) {
-            throw std::out_of_range("Stack is empty");
+            //throw std::out_of_range("Stack is empty");
+            std::cout << "Stack is empty. Cannot delete element." << std::endl;
         }
         length--; // Уменьшение длины (удаление последнего элемента)
     }
@@ -38,7 +39,9 @@ public:
     // Метод для чтения (получения) верхнего элемента стека
     T& SPOP() {
         if (length == 0) {
-            throw std::out_of_range("Stack is empty");
+            //throw std::out_of_range("Stack is empty");
+            std::cout << "Stack is empty. Cannot get element." << std::endl;
+            return data[0]; // Возвращаем первый элемент (для const-версии)
         }
         return data[length - 1]; // Возвращаем верхний элемент
     }
@@ -76,7 +79,9 @@ public:
     void saveToFile(const std::string& filename) const {
         std::ofstream file(filename);
         if (!file) {
-            throw std::runtime_error("Unable to open file for writing");
+            //throw std::runtime_error("Unable to open file for writing");
+            std::cout << "Unable to open file for writing. Stack will not be saved." << std::endl;
+            return;
         }
         for (int i = 0; i < length; i++) {
             file << data[i] << "\n"; // Сохраняем каждый элемент
@@ -88,7 +93,9 @@ public:
     void loadFromFile(const std::string& filename) {
         std::ifstream file(filename);
         if (!file) {
-            throw std::runtime_error("Unable to open file for reading");
+            //throw std::runtime_error("Unable to open file for reading");
+            std::cout << "Unable to open file for reading. Stack will not be loaded." << std::endl;
+            return;
         }
         clear(); // Очищаем текущий стек перед загрузкой
         T value;
