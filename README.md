@@ -1,7 +1,7 @@
 # thierdLaba
 
 ## Описание
-Краткое описание вашего проекта.
+Google Benchmarks to C++ and Testify to Golang
 
 ## Содержание
 - [Установка](#установка)
