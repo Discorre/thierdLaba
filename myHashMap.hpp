@@ -1,6 +1,11 @@
 #ifndef MYHASHMAP_HPP
 #define MYHASHMAP_HPP
 
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include "myListKV.hpp"
+
 template <typename K, typename V>
 class MyHashMap {
 private:
@@ -112,7 +117,6 @@ public:
 
         file.close();
     }
-
 
     // Очистка хеш-таблицы
     void clear() {

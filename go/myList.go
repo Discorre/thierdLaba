@@ -4,16 +4,16 @@ import (
 	"fmt"
 )
 
-type node[K comparable, V any] struct {
-	key   K
-	value V
-	next  *node[K, V]
+type MyList[K comparable, V any] struct {
+	Head *Node[K, V]
+	Tail *Node[K, V]
+	Length int
 }
 
-type MyList[K comparable, V any] struct {
-	head   *node[K, V]
-	tail   *node[K, V]
-	length int
+type Node[K comparable, V any] struct {
+	Key   K
+	Value V
+	Next  *Node[K, V]
 }
 
 // Конструктор
@@ -23,85 +23,85 @@ func NewMyList[K comparable, V any]() *MyList[K, V] {
 
 // Добавление пары ключ-значение в конец списка
 func (l *MyList[K, V]) PushBack(key K, value V) {
-	newNode := &node[K, V]{key: key, value: value}
-	if l.tail == nil {
-		l.head = newNode
-		l.tail = newNode
+	newNode := &Node[K, V]{Key: key, Value: value}
+	if l.Tail == nil {
+		l.Head = newNode
+		l.Tail = newNode
 	} else {
-		l.tail.next = newNode
-		l.tail = newNode
+		l.Tail.Next = newNode
+		l.Tail = newNode
 	}
-	l.length++
+	l.Length++
 }
 
 // Поиск элемента по ключу
 func (l *MyList[K, V]) Find(key K) (V, bool) {
-	current := l.head
+	current := l.Head
 	var zeroValue V
 	for current != nil {
-		if current.key == key {
-			return current.value, true
+		if current.Key == key {
+			return current.Value, true
 		}
-		current = current.next
+		current = current.Next
 	}
 	return zeroValue, false
 }
 
 // Получение элемента по индексу
 func (l *MyList[K, V]) FindAt(index int) (K, V, bool) {
-	if index < 0 || index >= l.length {
+	if index < 0 || index >= l.Length {
 		var zeroK K
 		var zeroV V
 		return zeroK, zeroV, false
 	}
-	current := l.head
+	current := l.Head
 	for i := 0; i < index; i++ {
-		current = current.next
+		current = current.Next
 	}
-	return current.key, current.value, true
+	return current.Key, current.Value, true
 }
 
 // Удаление элемента по ключу
 func (l *MyList[K, V]) Remove(key K) bool {
-	current := l.head
-	var prev *node[K, V]
+	current := l.Head
+	var prev *Node[K, V]
 	for current != nil {
-		if current.key == key {
+		if current.Key == key {
 			if prev != nil {
-				prev.next = current.next
+				prev.Next = current.Next
 			} else {
-				l.head = current.next
+				l.Head = current.Next
 			}
-			if current == l.tail {
-				l.tail = prev
+			if current == l.Tail {
+				l.Tail = prev
 			}
-			l.length--
+			l.Length--
 			return true
 		}
 		prev = current
-		current = current.next
+		current = current.Next
 	}
 	return false
 }
 
 // Печать элементов списка
 func (l *MyList[K, V]) Print() {
-	current := l.head
+	current := l.Head
 	for current != nil {
-		fmt.Printf("{%v: %v} ", current.key, current.value)
-		current = current.next
+		fmt.Printf("{%v: %v} ", current.Key, current.Value)
+		current = current.Next
 	}
 	fmt.Println()
 }
 
 // Получение длины списка
 func (l *MyList[K, V]) Size() int {
-	return l.length
+	return l.Length
 }
 
 // Очистка списка
 func (l *MyList[K, V]) Clear() {
-	l.head = nil
-	l.tail = nil
-	l.length = 0
+	l.Head = nil
+	l.Tail = nil
+	l.Length = 0
 }

@@ -41,7 +41,7 @@ coverage: clean $(TARGET)
 	# Генерация пофайловых HTML-отчетов
 	genhtml $(COVERAGE_DIR)/coverage_filtered.info --output-directory $(COVERAGE_DIR) --demangle-cpp --show-details
 
-	@echo "HTML-отчет о покрытии создан в $(COVERAGE_DIR)/index.html"
+	@echo "HTML-отчет о покрытии создан в $(COVERAGE_DIR)/thierdLaba/index.html"
 
 # Очистка скомпилированных файлов и отчетов о покрытии
 clean:

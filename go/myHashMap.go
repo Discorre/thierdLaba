@@ -4,20 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	 "encoding/gob"
 
 )
 
 type MyHashMap[K comparable, V any] struct {
-	table    []*MyList[K, V]
-	capacity int
+	Table    []*MyList[K, V] // Поменяли table на Table
+	Capacity int              // Поменяли capacity на Capacity
 }
 
 // Конструктор
 func NewMyHashMap[K comparable, V any](capacity int) *MyHashMap[K, V] {
-	hm := &MyHashMap[K, V]{capacity: capacity}
-	hm.table = make([]*MyList[K, V], capacity)
+	hm := &MyHashMap[K, V]{Capacity: capacity}
+	hm.Table = make([]*MyList[K, V], capacity)
 	for i := 0; i < capacity; i++ {
-		hm.table[i] = NewMyList[K, V]()
+		hm.Table[i] = NewMyList[K, V]()
 	}
 	return hm
 }
@@ -29,7 +30,7 @@ func (hm *MyHashMap[K, V]) hash(key K) int {
 	hashValue := 0
 	keyStr := fmt.Sprintf("%v", key)
 	for _, c := range keyStr {
-		hashValue = (hashValue*31 + int(c)) % hm.capacity
+		hashValue = (hashValue*31 + int(c)) % hm.Capacity
 	}
 	return hashValue
 }
@@ -37,7 +38,7 @@ func (hm *MyHashMap[K, V]) hash(key K) int {
 // HGET - получение элемента по ключу
 func (hm *MyHashMap[K, V]) HGET(key K) (V, error) {
 	index := hm.hash(key)
-	value, found := hm.table[index].Find(key)
+	value, found := hm.Table[index].Find(key)
 	if !found {
 		var zeroValue V
 		return zeroValue, errors.New("key not found")
@@ -48,8 +49,8 @@ func (hm *MyHashMap[K, V]) HGET(key K) (V, error) {
 // HSET - добавление элемента
 func (hm *MyHashMap[K, V]) HSET(key K, value V) {
 	index := hm.hash(key)
-	if _, found := hm.table[index].Find(key); !found {
-		hm.table[index].PushBack(key, value)
+	if _, found := hm.Table[index].Find(key); !found {
+		hm.Table[index].PushBack(key, value)
 	} else {
 		fmt.Println("Key already exists")
 	}
@@ -58,7 +59,7 @@ func (hm *MyHashMap[K, V]) HSET(key K, value V) {
 // HDEL - удаление элемента по ключу
 func (hm *MyHashMap[K, V]) HDEL(key K) error {
 	index := hm.hash(key)
-	if !hm.table[index].Remove(key) {
+	if !hm.Table[index].Remove(key) {
 		return errors.New("key not found")
 	}
 	return nil
@@ -66,7 +67,7 @@ func (hm *MyHashMap[K, V]) HDEL(key K) error {
 
 // Печать хеш-таблицы
 func (hm *MyHashMap[K, V]) Print() {
-	for i, list := range hm.table {
+	for i, list := range hm.Table {
 		fmt.Printf("Bucket %d: ", i)
 		list.Print()
 	}
@@ -79,9 +80,9 @@ func (hm *MyHashMap[K, V]) SaveToFile(filename string) error {
 		return err
 	}
 	defer file.Close()
-	for i := 0; i < hm.capacity; i++ {
-		for j := 0; j < hm.table[i].Size(); j++ {
-			key, value, ok := hm.table[i].FindAt(j)
+	for i := 0; i < hm.Capacity; i++ {
+		for j := 0; j < hm.Table[i].Size(); j++ {
+			key, value, ok := hm.Table[i].FindAt(j)
 			if ok {
 				file.WriteString(fmt.Sprintf("%v %v\n", key, value))
 			}
@@ -112,7 +113,39 @@ func (hm *MyHashMap[K, V]) LoadFromFile(filename string) error {
 
 // Очистка хеш-таблицы
 func (hm *MyHashMap[K, V]) Clear() {
-	for i := 0; i < hm.capacity; i++ {
-		hm.table[i].Clear()
+	for i := 0; i < hm.Capacity; i++ {
+		hm.Table[i].Clear()
 	}
+}
+
+// SaveToBinaryFile сохраняет MyHashMap в бинарный файл
+func (hm *MyHashMap[K, V]) SaveToBinaryFile(filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(hm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadFromBinaryFile загружает MyHashMap из бинарного файла
+func (hm *MyHashMap[K, V]) LoadFromBinaryFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := gob.NewDecoder(file)
+	err = decoder.Decode(hm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
