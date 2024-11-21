@@ -11,20 +11,20 @@ private:
 public:
     // Конструктор по умолчанию
     MyVector(int size = 10) : capacity(10), length(0) {
-        data = new T[capacity];  // Инициализация массива с начальной емкостью
+        data = new T[capacity];
     }
 
     // Деструктор
     ~MyVector() {
-        delete[] data; // Освобождение выделенной памяти
+        delete[] data;
     }
 
     // Метод для добавления элемента в конец массива
     void push_back(const T& element) {
         if (length == capacity) {
-            resize(); // Увеличение емкости, если массив полон
+            resize();
         }
-        data[length++] = element; // Добавление элемента и увеличение длины
+        data[length++] = element;
     }
 
     // Метод для добавления элемента по индексу
@@ -33,14 +33,13 @@ public:
             throw std::out_of_range("Index out of range");
         }
         if (length == capacity) {
-            resize(); // Увеличение емкости, если массив полон
+            resize();
         }
-        // Сдвиг элементов вправо, чтобы освободить место
         for (int i = length; i > index; --i) {
             data[i] = data[i - 1];
         }
-        data[index] = element; // Вставка элемента
-        length++; // Увеличение длины
+        data[index] = element;
+        length++;
     }
 
     // Метод для удаления элемента по индексу
@@ -48,19 +47,18 @@ public:
         if (index < 0 || index >= length) {
             throw std::out_of_range("Index out of range");
         }
-        // Сдвиг элементов влево, чтобы заполнить пробел
         for (int i = index; i < length - 1; ++i) {
             data[i] = data[i + 1];
         }
-        length--; // Уменьшение длины
+        length--;
     }
 
-    // Метод для получения элемента по индексу (неконстантная версия)
+    // Метод для получения элемента по индексу
     T& get(int index) {
         if (index < 0 || index >= length) {
             throw std::out_of_range("Index out of range");
         }
-        return data[index]; // Возвращаем элемент
+        return data[index];
     }
 
     // Константная версия метода get
@@ -68,7 +66,7 @@ public:
         if (index < 0 || index >= length) {
             throw std::out_of_range("Index out of range");
         }
-        return data[index]; // Возвращаем элемент
+        return data[index];
     }
 
     // Метод для замены элемента по индексу
@@ -76,31 +74,74 @@ public:
         if (index < 0 || index >= length) {
             throw std::out_of_range("Index out of range");
         }
-        data[index] = element; // Замена элемента
+        data[index] = element;
     }
 
-    // Увеличение емкости массива
+    // Увеличение емкости массива (bin)
     void resize() {
-        capacity *= 2; // Увеличиваем емкость в два раза
-        T* newData = new T[capacity]; // Создаем новый массив с новой емкостью
+        capacity *= 2;
+        T* newData = new T[capacity];
         for (int i = 0; i < length; i++) {
-            newData[i] = data[i]; // Копируем старые данные в новый массив
+            newData[i] = data[i];
         }
-        delete[] data; // Освобождаем старый массив
-        data = newData; // Перенаправляем указатель на новый массив
+        delete[] data;
+        data = newData;
     }
 
     // Метод для получения текущей длины массива
     int size() const {
-        return length; // Возвращаем длину
+        return length;
     }
 
     // Метод для чтения всех элементов массива
     void print() const {
         for (int i = 0; i < length; i++) {
-            std::cout << data[i] << " "; // Выводим каждый элемент
+            std::cout << data[i] << " ";
         }
-        std::cout << std::endl; // Переход на новую строку
+        std::cout << std::endl;
+    }
+
+    // Сохранение в бинарный файл
+    void saveToBinaryFile(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for writing");
+        }
+        // Write the length of the vector
+        file.write(reinterpret_cast<const char*>(&length), sizeof(length));
+        for (int i = 0; i < length; ++i) {
+            // Write the size of the string
+            size_t str_size = data[i].size();
+            file.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
+            // Write the characters of the string
+            file.write(data[i].c_str(), str_size);
+        }
+        file.close();
+    }
+
+    // Загрузка из бинарного файла
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for reading");
+        }
+        // Read the length of the vector
+        file.read(reinterpret_cast<char*>(&length), sizeof(length));
+        if (length > capacity) {
+            capacity = length;
+            T* newData = new T[capacity];
+            delete[] data;
+            data = newData;
+        }
+        for (int i = 0; i < length; ++i) {
+            size_t str_size;
+            file.read(reinterpret_cast<char*>(&str_size), sizeof(str_size));
+            // Resize the string to accommodate the characters
+            data[i].resize(str_size);
+            // Read the characters into the string
+            file.read(reinterpret_cast<char*>(data[i].data()), str_size);
+        }
+        file.close();
     }
 
     // Метод begin() для работы с диапазоном

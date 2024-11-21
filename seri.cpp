@@ -2,48 +2,73 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
-#include "serial.hpp"
 #include <string>
-#include "myListKV.hpp"
 #include "myArray.hpp"
-#include "myStack.hpp"
-#include "myHashMap.hpp"
+#include "myVector.hpp"
 
-static void seriHashMapToBinary(){
-    try {
-        // Создаем хеш-таблицу
-        MyHashMap<std::string, int> map(10);
+static void seriArrayToBinary(){
+    try{
+        MyArray<std::string> arr(10);
 
-        // Добавляем данные в хеш-таблицу
-        map.HSET("Alice", 25);
-        map.HSET("Bob", 30);
-        map.HSET("Charlie", 35);
+        arr.MPUSH("Alice");
+        arr.MPUSH("Bob");
+        arr.MPUSH("Charlie");
 
-        // Печатаем текущую таблицу
-        std::cout << "Initial hash map:" << std::endl;
-        map.print();
+        std::cout << "Initial array:" << std::endl;
+        arr.print();
 
         // Сериализация в бинарный файл
-        std::string binaryFile = "hashmap.bin";
-        map.saveToFile(binaryFile);
-        std::cout << "Hash map serialized to binary file: " << binaryFile << std::endl;
+        std::string binaryFile = "seriTest/binArr.bin";
+        arr.saveToBinaryFile(binaryFile);
+        //arr.saveToFile(binaryFile);
+        std::cout << "Array serialized to binary file: " << binaryFile << std::endl;
 
+        arr.print();
         // Создаем новую хеш-таблицу и загружаем из файла
-        MyHashMap<std::string, int> newMap(10);
-        newMap.loadFromFile(binaryFile);
+        MyArray<std::string> newArr(10);
+        newArr.loadFromBinaryFile(binaryFile);
+        //newArr.loadFromFile(binaryFile);
 
         // Печатаем загруженную таблицу
-        std::cout << "Hash map deserialized from binary file:" << std::endl;
-        newMap.print();
+        std::cout << "Array deserialized from binary file:" << std::endl;
+        newArr.print();
 
         // Проверка значения по ключу
-        std::cout << "Value for key 'Alice': " << newMap.HGET("Alice") << std::endl;
-
-    } catch (const std::exception& e) {
+        std::cout << "Value for key 'Alice': " << newArr.MGET(0) << std::endl;
+    }
+    catch(const std::exception& e){
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
 
+static void seriArrayToFile(){}
+
+static void seriVectorToBinary(){
+    try {
+        MyVector<std::string> vec;
+        vec.push_back("Alice");
+        vec.push_back("Bob");
+        vec.push_back("Charlie");
+        std::cout << "Original vector: ";
+        vec.print();
+
+        vec.saveToBinaryFile("seriTest/binVec.bin");
+
+        MyVector<std::string> vec2;
+        vec2.loadFromBinaryFile("seriTest/binVec.bin");
+        std::cout << "Loaded vector: ";
+        vec2.print();
+
+    } catch (const std::exception& e) {
+        std::cerr << "Exception caught: " << e.what() << std::endl;
+    }
+    
+}
+
 int main() {
-    seriHashMapToBinary();
+    system("clear");
+    seriArrayToBinary();
+    std::cout << std::endl;
+    seriVectorToBinary();
+    return 0;
 }

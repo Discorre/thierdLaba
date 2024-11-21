@@ -21,7 +21,23 @@ void restoreOutput() {
     std::cout.clear();
 }
 
-// ==== Benchmarks for MyList ====
+// Генератор случайных строк
+std::string generateRandomString(size_t length) {
+    static const char charset[] =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789";
+    static std::mt19937 generator{std::random_device{}()};
+    static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 2);
+
+    std::string result(length, '\0');
+    for (size_t i = 0; i < length; ++i) {
+        result[i] = charset[distribution(generator)];
+    }
+    return result;
+}
+
+//==== Benchmarks for MyList ====
 
 static void BM_MyList_PushBack(benchmark::State& state) {
     MyList<int, int> list;
@@ -31,7 +47,7 @@ static void BM_MyList_PushBack(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyList_PushBack)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyList_PushBack)->Range(10000, 10000)->Complexity();
 
 static void BM_MyList_Find(benchmark::State& state) {
     MyList<int, int> list;
@@ -44,7 +60,7 @@ static void BM_MyList_Find(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyList_Find)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyList_Find)->Range(10000, 10000)->Complexity();
 
 static void BM_MyList_Remove(benchmark::State& state) {
     MyList<int, int> list;
@@ -57,7 +73,7 @@ static void BM_MyList_Remove(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyList_Remove)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyList_Remove)->Range(10000, 10000)->Complexity();
 
 // ==== Benchmarks for MyArray ====
 
@@ -69,7 +85,7 @@ static void BM_MyArray_MPush_Back(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_MPush_Back)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyArray_MPush_Back)->Range(10000, 10000)->Complexity();
 
 // Benchmark для вставки элементов по индексу
 static void BM_MyArray_MPush_Index(benchmark::State& state) {
@@ -82,7 +98,7 @@ static void BM_MyArray_MPush_Index(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_MPush_Index)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyArray_MPush_Index)->Range(10000, 10000)->Complexity();
 
 // Benchmark для удаления элемента
 static void BM_MyArray_MDEL(benchmark::State& state) {
@@ -94,10 +110,11 @@ static void BM_MyArray_MDEL(benchmark::State& state) {
     for (auto _ : state) {
         myArray.MDEL(myArray.lengtharr() / 2); // Удаляем элемент из середины
     }
+    myArray.MGET(-11);
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_MDEL)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyArray_MDEL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для получения элемента по индексу
 static void BM_MyArray_MGET(benchmark::State& state) {
@@ -109,10 +126,11 @@ static void BM_MyArray_MGET(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(myArray.MGET(state.range(0) / 2)); // Получаем элемент
     }
+    myArray.MGET(-11); // Восстанавливаем элемент, чтобы длина оставалась постоянной
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_MGET)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyArray_MGET)->Range(10000, 10000)->Complexity();
 
 // Benchmark для получения элемента по индексу (константная версия)
 static void BM_MyArray_ConstMGET(benchmark::State& state) {
@@ -126,13 +144,15 @@ static void BM_MyArray_ConstMGET(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(constArray.MGET(constArray.lengtharr() / 2)); // Вызываем константный MGET
     }
+    state.SetComplexityN(state.range(0));
     restoreOutput();
 }
-BENCHMARK(BM_MyArray_ConstMGET)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_MyArray_ConstMGET)->Range(10000, 10000)->Complexity();
 
 // Benchmark для замены элемента по индексу
 static void BM_MyArray_MRESET(benchmark::State& state) {
     MyArray<int> myArray;
+    suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
         myArray.MPUSH(i); // Заполняем массив
     }
@@ -140,8 +160,11 @@ static void BM_MyArray_MRESET(benchmark::State& state) {
         myArray.MRESET(state.range(0) / 2, 99); // Заменяем элемент в середине
     }
     state.SetComplexityN(state.range(0));
+
+    myArray.MRESET(-12, 42); // Восстанавливаем элемент, чтобы длина оставалась постоянной
+    restoreOutput();
 }
-BENCHMARK(BM_MyArray_MRESET)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyArray_MRESET)->Range(10000, 10000)->Complexity();
 
 // Benchmark для сохранения массива в файл
 static void BM_MyArray_SaveToFile(benchmark::State& state) {
@@ -152,8 +175,9 @@ static void BM_MyArray_SaveToFile(benchmark::State& state) {
     for (auto _ : state) {
         myArray.saveToFile("myarray_test.txt"); // Сохраняем массив в файл
     }
+    state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_SaveToFile)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_MyArray_SaveToFile)->Range(10000, 10000)->Complexity();
 
 // Benchmark для загрузки массива из файла
 static void BM_MyArray_LoadFromFile(benchmark::State& state) {
@@ -165,8 +189,9 @@ static void BM_MyArray_LoadFromFile(benchmark::State& state) {
     for (auto _ : state) {
         myArray.loadFromFile("myarray_test.txt"); // Загружаем массив из файла
     }
+    state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_LoadFromFile)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_MyArray_LoadFromFile)->Range(10000, 10000)->Complexity();;
 
 // Benchmark для очистки массива
 static void BM_MyArray_Clear(benchmark::State& state) {
@@ -179,7 +204,7 @@ static void BM_MyArray_Clear(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyArray_Clear)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_MyArray_Clear)->Range(10000, 10000);
 
 // Benchmark для печати массива
 static void BM_MyArray_Print(benchmark::State& state) {
@@ -193,7 +218,25 @@ static void BM_MyArray_Print(benchmark::State& state) {
     }
     restoreOutput();
 }
-BENCHMARK(BM_MyArray_Print)->Range(1 << 10, 1 << 12);
+BENCHMARK(BM_MyArray_Print)->Range(10000, 10000);
+
+static void BM_MyArray_SaveLoadFromBinaryFile(benchmark::State& state) {
+    MyArray<std::string> array;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        array.MPUSH("key" + std::to_string(i));
+    }
+    array.saveToBinaryFile("myarray_test.bin"); // Сохраняем хэш-таблицу в бинарный файл
+    for (auto _ : state) {
+        array.clear();
+        array.loadFromBinaryFile("myarray_test.bin"); // Загружаем хэш-таблицу из бинарного файла
+    }
+    state.SetComplexityN(state.range(0));
+    // Устанавливаем количество байт для анализа пропускной способности
+    state.SetBytesProcessed(static_cast<int64_t>(state.range(0)) * 10);
+    restoreOutput();
+}
+BENCHMARK(BM_MyArray_SaveLoadFromBinaryFile)->Range(10000, 10000)->Complexity();
 
 // ==== Benchmarks for MyHashMap ====
 
@@ -207,7 +250,7 @@ static void BM_HashMap_Insert(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_HashMap_Insert)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_HashMap_Insert)->Range(10000, 10000)->Complexity();
 
 static void BM_HashMap_Get(benchmark::State& state) {
     hashmap.clear();
@@ -221,7 +264,7 @@ static void BM_HashMap_Get(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_HashMap_Get)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_HashMap_Get)->Range(10000, 10000)->Complexity();
 
 static void BM_HashMap_Delete(benchmark::State& state) {
     hashmap.clear();
@@ -236,7 +279,7 @@ static void BM_HashMap_Delete(benchmark::State& state) {
     }
     restoreOutput();
 } 
-BENCHMARK(BM_HashMap_Delete)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_HashMap_Delete)->Range(10000, 10000)->Complexity();
 
 static void BM_HashMap_SaveToFile(benchmark::State& state) {
     hashmap.clear();
@@ -247,7 +290,7 @@ static void BM_HashMap_SaveToFile(benchmark::State& state) {
         hashmap.saveToFile("hashmap_data.txt");
     }
 }
-BENCHMARK(BM_HashMap_SaveToFile)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_HashMap_SaveToFile)->Range(10000, 10000)->Complexity();
 
 static void BM_HashMap_LoadFromFile(benchmark::State& state) {
     hashmap.clear();
@@ -260,7 +303,7 @@ static void BM_HashMap_LoadFromFile(benchmark::State& state) {
         hashmap.loadFromFile("hashmap_data.txt");
     }
 }
-BENCHMARK(BM_HashMap_LoadFromFile)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_HashMap_LoadFromFile)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода print в HashMap для малых значений
 static void BM_MyHashMap_Print_Small(benchmark::State& state) {
@@ -279,32 +322,22 @@ static void BM_MyHashMap_Print_Small(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyHashMap_Print_Small)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyHashMap_Print_Small)->Range(1 << 8, 1 << 8)->Complexity();
 
 // ==== Benchmarks for MyVector ====
-
-// Benchmark для метода push_back
-static void BM_MyVector_PushBack(benchmark::State& state) {
-    MyVector<int> vec;
-    for (auto _ : state) {
-        vec.push_back(42); // Добавляем элемент в конец
-    }
-    state.SetComplexityN(state.range(0));
-}
-BENCHMARK(BM_MyVector_PushBack)->Range(1 << 10, 1 << 20)->Complexity();
 
 // Benchmark для метода insert
 static void BM_MyVector_Insert(benchmark::State& state) {
     MyVector<int> vec;
     for (int i = 0; i < state.range(0); i++) {
-        vec.push_back(42); // Заполняем вектор
+        vec.push_back(i); // Заполняем вектор
     }
     for (auto _ : state) {
         vec.insert(state.range(0) / 2, 99); // Вставка в середину
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Insert)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Insert)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода erase
 static void BM_MyVector_Erase(benchmark::State& state) {
@@ -318,7 +351,7 @@ static void BM_MyVector_Erase(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Erase)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Erase)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода get
 static void BM_MyVector_Get(benchmark::State& state) {
@@ -331,7 +364,7 @@ static void BM_MyVector_Get(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Get)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Get)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода set
 static void BM_MyVector_Set(benchmark::State& state) {
@@ -344,7 +377,7 @@ static void BM_MyVector_Set(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Set)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Set)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода resize (косвенно через push_back)
 static void BM_MyVector_Resize(benchmark::State& state) {
@@ -356,7 +389,7 @@ static void BM_MyVector_Resize(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Resize)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Resize)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода print
 static void BM_MyVector_Print(benchmark::State& state) {
@@ -371,7 +404,7 @@ static void BM_MyVector_Print(benchmark::State& state) {
     state.SetComplexityN(state.range(0));
     restoreOutput();
 }
-BENCHMARK(BM_MyVector_Print)->Range(1 << 10, 1 << 15)->Complexity();
+BENCHMARK(BM_MyVector_Print)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода size
 static void BM_MyVector_Size(benchmark::State& state) {
@@ -386,7 +419,7 @@ static void BM_MyVector_Size(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Size)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Size)->Range(10000, 10000)->Complexity();
 
 // Benchmark для константного метода get
 static void BM_MyVector_ConstGet(benchmark::State& state) {
@@ -401,7 +434,7 @@ static void BM_MyVector_ConstGet(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_ConstGet)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_ConstGet)->Range(10000, 10000)->Complexity();
 
 // Benchmark для перебора элементов с помощью итераторов
 static void BM_MyVector_Iterate(benchmark::State& state) {
@@ -416,7 +449,7 @@ static void BM_MyVector_Iterate(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_Iterate)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_Iterate)->Range(10000, 10000)->Complexity();
 
 // Benchmark для const-итераторов
 static void BM_MyVector_ConstIterate(benchmark::State& state) {
@@ -434,7 +467,7 @@ static void BM_MyVector_ConstIterate(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_ConstIterate)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_ConstIterate)->Range(10000, 10000)->Complexity();
 
 // Benchmark для перебора с изменением значений через итераторы
 static void BM_MyVector_ModifyWithIterators(benchmark::State& state) {
@@ -449,7 +482,7 @@ static void BM_MyVector_ModifyWithIterators(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_ModifyWithIterators)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_ModifyWithIterators)->Range(10000, 10000)->Complexity();
 
 // Benchmark для std::for_each с использованием итераторов
 static void BM_MyVector_ForEach(benchmark::State& state) {
@@ -464,7 +497,25 @@ static void BM_MyVector_ForEach(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyVector_ForEach)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyVector_ForEach)->Range(10000, 10000)->Complexity();
+
+// Бенчмарк для десериализации
+static void BM_LoadFromBinaryFile(benchmark::State& state) {
+    MyVector<std::string> vec;
+    for (int i = 0; i < state.range(0); ++i) {
+        vec.push_back(generateRandomString(10));
+    }
+    vec.saveToBinaryFile("vector_test.bin");
+
+    for (auto _ : state) {
+        MyVector<std::string> newVec;
+        newVec.loadFromBinaryFile("vector_test.bin");
+    }
+
+    // Устанавливаем количество байт для анализа пропускной способности
+    state.SetBytesProcessed(static_cast<int64_t>(state.range(0)) * 10);
+}
+BENCHMARK(BM_LoadFromBinaryFile)->Range(1 << 10, 1 << 10);
 
 // ==== Benchmarks for MyQueue ====
 
@@ -476,7 +527,7 @@ static void BM_Queue_Q_PUSH(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_Queue_Q_PUSH)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_Queue_Q_PUSH)->Range(10000, 10000)->Complexity();
 
 // Benchmark для удаления элемента из очереди
 static void BM_Queue_Q_DEL(benchmark::State& state) {
@@ -490,7 +541,7 @@ static void BM_Queue_Q_DEL(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_Queue_Q_DEL)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_Queue_Q_DEL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для извлечения элемента из очереди
 static void BM_Queue_Q_POP(benchmark::State& state) {
@@ -504,7 +555,7 @@ static void BM_Queue_Q_POP(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_Queue_Q_POP)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_Queue_Q_POP)->Range(10000, 10000)->Complexity();
 
 // Benchmark для проверки пустоты
 static void BM_Queue_isEmpty(benchmark::State& state) {
@@ -525,7 +576,7 @@ static void BM_Queue_getSize(benchmark::State& state) {
         benchmark::DoNotOptimize(queue.getSize()); // Получаем размер
     }
 }
-BENCHMARK(BM_Queue_getSize)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_Queue_getSize)->Range(10000, 10000);
 
 // Benchmark для сохранения очереди в файл
 static void BM_Queue_saveToFile(benchmark::State& state) {
@@ -537,7 +588,7 @@ static void BM_Queue_saveToFile(benchmark::State& state) {
         queue.saveToFile("queue_test.txt"); // Сохраняем очередь в файл
     }
 }
-BENCHMARK(BM_Queue_saveToFile)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_Queue_saveToFile)->Range(10000, 10000);
 
 // Benchmark для загрузки очереди из файла
 static void BM_Queue_loadFromFile(benchmark::State& state) {
@@ -550,7 +601,7 @@ static void BM_Queue_loadFromFile(benchmark::State& state) {
         queue.loadFromFile("queue_test.txt"); // Загружаем очередь из файла
     }
 }
-BENCHMARK(BM_Queue_loadFromFile)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_Queue_loadFromFile)->Range(10000, 10000);
 
 // Benchmark для очистки очереди
 static void BM_Queue_clear(benchmark::State& state) {
@@ -562,7 +613,7 @@ static void BM_Queue_clear(benchmark::State& state) {
         queue.clear(); // Очищаем очередь
     }
 }
-BENCHMARK(BM_Queue_clear)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_Queue_clear)->Range(10000, 10000);
 
 // Benchmark для печати элементов очереди
 static void BM_Queue_print(benchmark::State& state) {
@@ -576,7 +627,7 @@ static void BM_Queue_print(benchmark::State& state) {
     }
     restoreOutput();
 }
-BENCHMARK(BM_Queue_print)->Range(1 << 10, 1 << 12);
+BENCHMARK(BM_Queue_print)->Range(10000, 10000);
 
 // ==== Benchmarks for MyStack ====
 
@@ -590,7 +641,7 @@ static void BM_MyStack_SPUSH(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_SPUSH)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_SPUSH)->Range(10000, 10000)->Complexity();
 
 // Benchmark для удаления элементов из стека
 static void BM_MyStack_SDEL(benchmark::State& state) {
@@ -605,7 +656,7 @@ static void BM_MyStack_SDEL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_SDEL)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_SDEL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для чтения верхнего элемента стека
 static void BM_MyStack_SPOP(benchmark::State& state) {
@@ -624,7 +675,7 @@ static void BM_MyStack_SPOP(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_SPOP)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_SPOP)->Range(10000, 10000)->Complexity();
 
 
 // Benchmark для очистки стека
@@ -638,7 +689,7 @@ static void BM_MyStack_Clear(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_Clear)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_Clear)->Range(10000, 10000)->Complexity();
 
 // Benchmark для сохранения стека в файл
 static void BM_MyStack_SaveToFile(benchmark::State& state) {
@@ -652,7 +703,7 @@ static void BM_MyStack_SaveToFile(benchmark::State& state) {
     std::remove("stack_data.txt"); // Удаляем файл после теста
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_SaveToFile)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_SaveToFile)->Range(10000, 10000)->Complexity();
 
 // Benchmark для загрузки стека из файла
 static void BM_MyStack_LoadFromFile(benchmark::State& state) {
@@ -670,7 +721,7 @@ static void BM_MyStack_LoadFromFile(benchmark::State& state) {
     std::remove("stack_data.txt"); // Удаляем файл после теста
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_LoadFromFile)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_LoadFromFile)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода print
 static void BM_MyStack_Print(benchmark::State& state) {
@@ -689,7 +740,7 @@ static void BM_MyStack_Print(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_Print)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_Print)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода size
 static void BM_MyStack_Size(benchmark::State& state) {
@@ -704,7 +755,7 @@ static void BM_MyStack_Size(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_Size)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(BM_MyStack_Size)->Range(10000, 10000)->Complexity();
 
 // ==== Benchmarks for MySinglyLinkedList ====
 
@@ -720,7 +771,7 @@ static void BM_MySinglyLinkedList_LPUSHHEAD(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LPUSHHEAD)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LPUSHHEAD)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LPUSHTAIL
 static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
@@ -734,7 +785,7 @@ static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LPUSHTAIL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LPUSHTAIL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDELHEAD
 static void BM_MySinglyLinkedList_LDELHEAD(benchmark::State& state) {
@@ -751,7 +802,7 @@ static void BM_MySinglyLinkedList_LDELHEAD(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LDELHEAD)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LDELHEAD)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDELTAIL
 static void BM_MySinglyLinkedList_LDELTAIL(benchmark::State& state) {
@@ -768,7 +819,7 @@ static void BM_MySinglyLinkedList_LDELTAIL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LDELTAIL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LDELTAIL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDEL
 static void BM_MySinglyLinkedList_LDEL(benchmark::State& state) {
@@ -787,7 +838,7 @@ static void BM_MySinglyLinkedList_LDEL(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LDEL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LDEL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода contains
 static void BM_MySinglyLinkedList_Contains(benchmark::State& state) {
@@ -802,7 +853,7 @@ static void BM_MySinglyLinkedList_Contains(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_Contains)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_Contains)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LGET
 static void BM_MySinglyLinkedList_LGET(benchmark::State& state) {
@@ -817,7 +868,7 @@ static void BM_MySinglyLinkedList_LGET(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_LGET)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_LGET)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода print
 static void BM_MySinglyLinkedList_Print(benchmark::State& state) {
@@ -832,7 +883,7 @@ static void BM_MySinglyLinkedList_Print(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_Print)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_Print)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода getSize
 static void BM_MySinglyLinkedList_GetSize(benchmark::State& state) {
@@ -845,7 +896,7 @@ static void BM_MySinglyLinkedList_GetSize(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_GetSize)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_GetSize)->Range(10000, 10000)->Complexity();
 
 // Benchmark для методов saveToFile и loadFromFile
 static void BM_MySinglyLinkedList_SaveLoadFile(benchmark::State& state) {
@@ -859,7 +910,7 @@ static void BM_MySinglyLinkedList_SaveLoadFile(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MySinglyLinkedList_SaveLoadFile)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MySinglyLinkedList_SaveLoadFile)->Range(10000, 10000)->Complexity();
 
 // ==== Benchmarks for MyDoublyLinkedList ====
 
@@ -875,7 +926,7 @@ static void BM_MyDoublyLinkedList_LPUSHHEAD(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LPUSHHEAD)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LPUSHHEAD)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LPUSHTAIL
 static void BM_MyDoublyLinkedList_LPUSHTAIL(benchmark::State& state) {
@@ -889,7 +940,7 @@ static void BM_MyDoublyLinkedList_LPUSHTAIL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LPUSHTAIL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LPUSHTAIL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDELHEAD
 static void BM_MyDoublyLinkedList_LDELHEAD(benchmark::State& state) {
@@ -906,7 +957,7 @@ static void BM_MyDoublyLinkedList_LDELHEAD(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LDELHEAD)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LDELHEAD)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDELTAIL
 static void BM_MyDoublyLinkedList_LDELTAIL(benchmark::State& state) {
@@ -923,7 +974,7 @@ static void BM_MyDoublyLinkedList_LDELTAIL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LDELTAIL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LDELTAIL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LDEL (удаление по индексу)
 static void BM_MyDoublyLinkedList_LDEL(benchmark::State& state) {
@@ -941,7 +992,7 @@ static void BM_MyDoublyLinkedList_LDEL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LDEL)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LDEL)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода contains
 static void BM_MyDoublyLinkedList_Contains(benchmark::State& state) {
@@ -956,7 +1007,7 @@ static void BM_MyDoublyLinkedList_Contains(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_Contains)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_Contains)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода LGET
 static void BM_MyDoublyLinkedList_LGET(benchmark::State& state) {
@@ -971,7 +1022,7 @@ static void BM_MyDoublyLinkedList_LGET(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_LGET)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_LGET)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода print
 static void BM_MyDoublyLinkedList_Print(benchmark::State& state) {
@@ -986,7 +1037,7 @@ static void BM_MyDoublyLinkedList_Print(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_Print)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_Print)->Range(10000, 10000)->Complexity();
 
 // Benchmark для метода getSize
 static void BM_MyDoublyLinkedList_GetSize(benchmark::State& state) {
@@ -1001,7 +1052,7 @@ static void BM_MyDoublyLinkedList_GetSize(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_GetSize)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_GetSize)->Range(10000, 10000)->Complexity();
 
 // Benchmark для методов saveToFile и loadFromFile
 static void BM_MyDoublyLinkedList_SaveLoadFile(benchmark::State& state) {
@@ -1017,7 +1068,7 @@ static void BM_MyDoublyLinkedList_SaveLoadFile(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyDoublyLinkedList_SaveLoadFile)->Range(8, 1 << 8)->Complexity();
+BENCHMARK(BM_MyDoublyLinkedList_SaveLoadFile)->Range(10000, 10000)->Complexity();
 
 // ==== Benchmarks for MyFullBinaryTree ====
 
@@ -1031,7 +1082,7 @@ static void BM_TINSERT(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_TINSERT)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_TINSERT)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции TDEL
 static void BM_TDEL(benchmark::State& state) {
@@ -1044,7 +1095,7 @@ static void BM_TDEL(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_TDEL)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_TDEL)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции TGET
 static void BM_TGET(benchmark::State& state) {
@@ -1057,7 +1108,7 @@ static void BM_TGET(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_TGET)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_TGET)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции print
 static void BM_PRINT(benchmark::State& state) {
@@ -1072,7 +1123,7 @@ static void BM_PRINT(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_PRINT)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_PRINT)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции isFull
 static void BM_ISFULL(benchmark::State& state) {
@@ -1089,7 +1140,7 @@ static void BM_ISFULL(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_ISFULL)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_ISFULL)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции saveToFile
 static void BM_SAVETOFILE(benchmark::State& state) {
@@ -1102,7 +1153,7 @@ static void BM_SAVETOFILE(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_SAVETOFILE)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_SAVETOFILE)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для функции loadFromFile
 static void BM_LOADFROMFILE(benchmark::State& state) {
@@ -1116,7 +1167,7 @@ static void BM_LOADFROMFILE(benchmark::State& state) {
     }
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_LOADFROMFILE)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_LOADFROMFILE)->Range(10000, 10000)->Complexity();
 
 static void BM_PRINTROOT(benchmark::State& state) {
     FullBinaryTree<int> tree;
@@ -1130,7 +1181,7 @@ static void BM_PRINTROOT(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_PRINTROOT)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_PRINTROOT)->Range(10000, 10000)->Complexity();
 
 static void BM_GETROOT(benchmark::State& state) {
     FullBinaryTree<int> tree;
@@ -1144,7 +1195,7 @@ static void BM_GETROOT(benchmark::State& state) {
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_GETROOT)->Range(8, 1<<8)->Complexity();
+BENCHMARK(BM_GETROOT)->Range(10000, 10000)->Complexity();
 
 // Бенчмарк для удаления узла с одним потомком
 static void BM_TDELOneChild(benchmark::State& state) {
