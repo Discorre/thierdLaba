@@ -661,21 +661,20 @@ BENCHMARK(BM_MyStack_SDEL)->Range(10000, 10000)->Complexity();
 // Benchmark для чтения верхнего элемента стека
 static void BM_MyStack_SPOP(benchmark::State& state) {
     MyStack<int> myStack;
+    suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
         myStack.SPUSH(i); // Заполняем стек
     }
     for (auto _ : state) {
-        benchmark::DoNotOptimize(myStack.SPOP()); // Читаем верхний элемент
+        myStack.SPOP(); // Читаем верхний элемент
     }
     myStack.clear(); // Очищаем стек
-    suppressOutput();
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(myStack.SPOP()); // Читаем верхний элемент
-    }
+    
+    myStack.SPOP();
     restoreOutput();
-    state.SetComplexityN(state.range(0));
+    //state.SetComplexityN(state.range(0));
 }
-BENCHMARK(BM_MyStack_SPOP)->Range(10000, 10000)->Complexity();
+BENCHMARK(BM_MyStack_SPOP)->Range(10000, 10000);
 
 
 // Benchmark для очистки стека
@@ -734,9 +733,7 @@ static void BM_MyStack_Print(benchmark::State& state) {
         myStack.print(); // Печать содержимого
     }
     myStack.clear(); // Очищаем стек
-    for (auto _ : state) {
-        myStack.print(); // Печать содержимого
-    }
+    myStack.print(); // Печать содержимого
     restoreOutput();
     state.SetComplexityN(state.range(0));
 }
