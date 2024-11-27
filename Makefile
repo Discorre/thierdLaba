@@ -1,10 +1,10 @@
 # Имя основного исполняемого файла
 TARGET = benchmark_main
-SERI_TARGET = seri
+SERI_TARGET = seri.out
 
 # Компилятор и флаги компиляции с покрытием
 CXX = g++
-CXXFLAGS = -std=c++17 -g -O0 -fprofile-arcs -ftest-coverage
+CXXFLAGS = -std=c++17 -g -O3 -fprofile-arcs -ftest-coverage
 
 # Источники и заголовочные файлы
 SRC = benchmark.cpp
@@ -29,12 +29,14 @@ $(TARGET): $(OBJ)
 $(SERI_TARGET): seri.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
-run_seri: cleanSeriData $(SERI_TARGET) 
+seri: cleanSeriData $(SERI_TARGET) 
 	mkdir -p seriTest
 	./$(SERI_TARGET)
 
 # Запуск тестов и генерация отчета о покрытии
 coverage: clean $(TARGET)
+	mkdir -p seriTest
+
 	# Запуск бенчмарка для сбора данных покрытия
 	./$(TARGET)
 
@@ -64,4 +66,5 @@ clean: cleanSeriData
 cleanSeriData:
 	rm -rf seriTest
 	rm -f seri
-	rm -f seri.gcda seri.gcno
+	rm -f *.gcda *seri.gcno
+	rm -f *.bin

@@ -89,6 +89,38 @@ public:
         file.close();
     }
 
+    // Сохранение очереди в бинарный файл
+    void saveToBinaryFile(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for writing");
+        }
+        file.write(reinterpret_cast<const char*>(&size), sizeof(size)); // Сохраняем размер очереди
+        for (size_t i = 0; i < size; ++i) {
+            T value = data[(front + i) % capacity];
+            file.write(reinterpret_cast<const char*>(&value), sizeof(T)); // Сохраняем элементы
+        }
+        file.close();
+    }
+
+    // Загрузка очереди из бинарного файла
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for reading");
+        }
+        clear(); // Очищаем текущую очередь
+        size_t newSize;
+        file.read(reinterpret_cast<char*>(&newSize), sizeof(newSize)); // Считываем размер очереди
+        for (size_t i = 0; i < newSize; ++i) {
+            T value;
+            file.read(reinterpret_cast<char*>(&value), sizeof(T)); // Считываем элементы
+            Q_PUSH(value);
+        }
+        file.close();
+    }
+
+
     // Загрузка очереди из файла
     void loadFromFile(const std::string& filename) {
         std::ifstream file(filename);

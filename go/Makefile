@@ -16,7 +16,7 @@ all: benchmark
 build:
 	$(GOBUILD) -o $(BINARY_NAME) $(BENCHMARK_FILE)
 
-clean:
+clean: cleanSeri
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
 	rm -f $(COVERAGE_FILE)
@@ -24,6 +24,12 @@ clean:
 	rm -rf $(TEST_DIRECTORY)
 	rm -f benchmark_test.txt
 	rm -f hashmap.bin
+
+cleanSeri:
+	rm -f hashmap.bin
+
+seri: cleanSeri
+	go run seri.go myHashMap.go myList.go
 
 benchmark:
 	$(GOTEST) $(BENCHMARK_FLAGS) -run=^$$ -bench=. $(BENCHMARK_FILE)

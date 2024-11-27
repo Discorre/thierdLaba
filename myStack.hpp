@@ -105,6 +105,51 @@ public:
         file.close();
     }
 
+    void saveToFileBinary(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary); // Бинарный режим
+        if (!file) {
+            throw std::runtime_error("Unable to open file for writing");
+        }
+        file.write(reinterpret_cast<const char*>(&length), sizeof(length)); // Сохраняем длину стека
+        for (int i = 0; i < length; ++i) {
+            if constexpr (std::is_same_v<T, std::string>) {
+                size_t strLength = data[i].size();
+                file.write(reinterpret_cast<const char*>(&strLength), sizeof(strLength)); // Сохраняем длину строки
+                file.write(data[i].c_str(), strLength); // Сохраняем содержимое строки
+            } else {
+                file.write(reinterpret_cast<const char*>(&data[i]), sizeof(data[i])); // Сохраняем элемент
+            }
+        }
+        file.close();
+    }
+
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary); // Бинарный режим
+        if (!file) {
+            throw std::runtime_error("Unable to open file for reading");
+        }
+        clear(); // Очищаем стек перед загрузкой
+        int newLength;
+        file.read(reinterpret_cast<char*>(&newLength), sizeof(newLength)); // Читаем длину стека
+        for (int i = 0; i < newLength; ++i) {
+            T value;
+            if constexpr (std::is_same_v<T, std::string>) {
+                size_t strLength;
+                file.read(reinterpret_cast<char*>(&strLength), sizeof(strLength)); // Читаем длину строки
+                char* buffer = new char[strLength + 1];
+                file.read(buffer, strLength); // Читаем содержимое строки
+                buffer[strLength] = '\0';
+                value = std::string(buffer);
+                delete[] buffer;
+            } else {
+                file.read(reinterpret_cast<char*>(&value), sizeof(value)); // Читаем элемент
+            }
+            SPUSH(value);
+        }
+        file.close();
+    }
+
+
     // Очистка стека
     void clear() {
         delete[] data; // Освобождаем память

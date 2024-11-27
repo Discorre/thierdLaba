@@ -32,8 +32,6 @@ public:
         delete[] table; // Освобождаем память
     }
 
-    
-
     // Метод для получения элемента по ключу (HGET)
     V HGET(const K& key) {
         V value{};
@@ -113,6 +111,82 @@ public:
         V value;
         while (file >> key >> value) { // Чтение ключей и значений из файла
             HSET(key, value); // Добавляем пары ключ-значение в хеш-таблицу
+        }
+
+        file.close();
+    }
+
+    // Сохранение в бинарный файл
+    void saveToBinaryFile(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for writing");
+        }
+
+        file.write(reinterpret_cast<const char*>(&capacity), sizeof(capacity));
+
+        for (int i = 0; i < capacity; i++) {
+            const MyList<K, V>& bucket = table[i];
+
+            int bucketSize = bucket.size();
+            file.write(reinterpret_cast<const char*>(&bucketSize), sizeof(bucketSize));
+
+            for (int j = 0; j < bucketSize; j++) {
+                K key;
+                V value;
+                if (bucket.findAt(j, key, value)) {
+                    if constexpr (std::is_same<K, std::string>::value) {
+                        size_t keySize = key.size();
+                        file.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
+                        file.write(key.c_str(), keySize);
+                    } else {
+                        file.write(reinterpret_cast<const char*>(&key), sizeof(key));
+                    }
+
+                    file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+                }
+            }
+        }
+
+        file.close();
+    }
+
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for reading");
+        }
+
+        clear();
+        delete[] table;
+
+        file.read(reinterpret_cast<char*>(&capacity), sizeof(capacity));
+        table = new MyList<K, V>[capacity];
+
+        for (int i = 0; i < capacity; i++) {
+            int bucketSize;
+            file.read(reinterpret_cast<char*>(&bucketSize), sizeof(bucketSize));
+
+            for (int j = 0; j < bucketSize; j++) {
+                K key;
+                V value;
+
+                if constexpr (std::is_same<K, std::string>::value) {
+                    size_t keySize;
+                    file.read(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+
+                    char* buffer = new char[keySize + 1];
+                    file.read(buffer, keySize);
+                    buffer[keySize] = '\0';
+                    key = std::string(buffer);
+                    delete[] buffer;
+                } else {
+                    file.read(reinterpret_cast<char*>(&key), sizeof(key));
+                }
+
+                file.read(reinterpret_cast<char*>(&value), sizeof(value));
+                HSET(key, value);
+            }
         }
 
         file.close();

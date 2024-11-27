@@ -161,6 +161,46 @@ public:
         file.close();
     }
 
+    // Сохранение в бинарный файл
+    void saveToBinaryFile(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for writing");
+        }
+        
+        file.write(reinterpret_cast<const char*>(&size), sizeof(size)); // Записываем размер списка
+        Node* current = head;
+        while (current) {
+            size_t str_size = current->data.size();
+            file.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size)); // Размер строки
+            file.write(reinterpret_cast<const char*>(current->data.c_str()), str_size); // Данные
+            current = current->next;
+        }
+        file.close();
+    }
+
+    // Загрузка из бинарного файла
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for reading");
+        }
+
+        size_t list_size;
+        file.read(reinterpret_cast<char*>(&list_size), sizeof(list_size)); // Чтение размера списка
+
+        clear(); // Очистим текущий список
+
+        for (size_t i = 0; i < list_size; ++i) {
+            size_t str_size;
+            file.read(reinterpret_cast<char*>(&str_size), sizeof(str_size)); // Чтение размера строки
+            std::string value(str_size, '\0'); 
+            file.read(reinterpret_cast<char*>(&value[0]), str_size); // Чтение строки
+            LPUSHTAIL(value); // Добавляем элемент в список
+        }
+        file.close();
+    }
+
     // Загрузка списка из файла
     void loadFromFile(const std::string& filename) {
         std::ifstream file(filename);

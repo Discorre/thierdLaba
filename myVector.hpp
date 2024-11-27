@@ -107,13 +107,10 @@ public:
         if (!file.is_open()) {
             throw std::runtime_error("Cannot open file for writing");
         }
-        // Write the length of the vector
         file.write(reinterpret_cast<const char*>(&length), sizeof(length));
         for (int i = 0; i < length; ++i) {
-            // Write the size of the string
             size_t str_size = data[i].size();
             file.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
-            // Write the characters of the string
             file.write(data[i].c_str(), str_size);
         }
         file.close();
@@ -136,9 +133,7 @@ public:
         for (int i = 0; i < length; ++i) {
             size_t str_size;
             file.read(reinterpret_cast<char*>(&str_size), sizeof(str_size));
-            // Resize the string to accommodate the characters
             data[i].resize(str_size);
-            // Read the characters into the string
             file.read(reinterpret_cast<char*>(data[i].data()), str_size);
         }
         file.close();

@@ -110,6 +110,44 @@ private:
         return isFull(node->left) && isFull(node->right);
     }
 
+    // Сохранение узлов в бинарный файл
+    void saveBinary(Node<T>* node, std::ofstream& file) const {
+        if (node == nullptr) {
+            T null_marker = T(); // Маркер null, например, 0 для int
+            file.write(reinterpret_cast<const char*>(&null_marker), sizeof(T));
+            return;
+        }
+
+        // Сохраняем данные узла
+        file.write(reinterpret_cast<const char*>(&node->data), sizeof(T));
+
+        // Рекурсивно сохраняем левое и правое поддеревья
+        saveBinary(node->left, file);
+        saveBinary(node->right, file);
+    }
+
+    // Загрузка узлов из бинарного файла
+    Node<T>* loadBinary(std::ifstream& file) {
+        T data;
+        if (!file.read(reinterpret_cast<char*>(&data), sizeof(T))) {
+            return nullptr; // Если конец файла, возвращаем null
+        }
+
+        // Проверяем, это узел или null-маркер
+        if (data == T()) {
+            return nullptr;
+        }
+
+        // Восстанавливаем узел
+        Node<T>* node = new Node<T>(data);
+
+        // Рекурсивно восстанавливаем левое и правое поддеревья
+        node->left = loadBinary(file);
+        node->right = loadBinary(file);
+
+        return node;
+    }
+
 
 public:
     // Конструктор
@@ -226,6 +264,27 @@ public:
         if (root != nullptr) {
             std::cout << "Root element: " << root->data << std::endl;
         }
+    }
+
+    // Сохранение дерева в бинарный файл
+    void saveToBinaryFile(const std::string& filename) const {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for writing");
+        }
+        saveBinary(root, file);
+        file.close();
+    }
+
+    // Загрузка дерева из бинарного файла
+    void loadFromBinaryFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Unable to open file for reading");
+        }
+        clear(root);  // Очищаем текущее дерево перед загрузкой
+        root = loadBinary(file);
+        file.close();
     }
 
     Node<T>* getRoot(){
