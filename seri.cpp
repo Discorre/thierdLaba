@@ -61,7 +61,7 @@ static void seriFullBinaryTreeToBinary(){
     std::cout << "Original tree (in-order): ";
     tree.print();
 
-    const std::string filename = "tree_data.bin";
+    const std::string filename = "seriTest/tree_data.bin";
 
     // Сериализация
     tree.saveToBinaryFile(filename);
@@ -115,12 +115,12 @@ static void seriQueueToBinary(){
         q.print();
 
         // Сериализуем очередь в файл
-        q.saveToFile("queue_data.bin");
+        q.saveToFile("seriTest/queue_data.bin");
         std::cout << "Queue has been serialized to queue_data.bin\n";
 
         // Создаём новую очередь и загружаем данные из файла
         Queue<std::string> newQueue;
-        newQueue.loadFromFile("queue_data.bin");
+        newQueue.loadFromFile("seriTest/queue_data.bin");
 
         std::cout << "Deserialized queue: ";
         newQueue.print();
@@ -145,12 +145,12 @@ static void seriStackToBinary(){
         stack.print();
 
         // Сохраняем стек в файл
-        stack.saveToFileBinary("stack_data.bin");
+        stack.saveToFileBinary("seriTest/stack_data.bin");
         std::cout << "Stack has been serialized to stack_data.bin\n";
 
         // Создаем новый стек и загружаем данные из файла
         MyStack<std::string> newStack;
-        newStack.loadFromBinaryFile("stack_data.bin");
+        newStack.loadFromBinaryFile("seriTest/stack_data.bin");
 
         std::cout << "Deserialized stack: ";
         newStack.print();
@@ -177,7 +177,7 @@ static void seriSinglyLinkedListToBinary(){
 
     // Сохраняем список в файл
     try {
-        list.saveToBinaryFile("list_data.bin");
+        list.saveToBinaryFile("seriTest/list_data.bin");
         std::cout << "List has been serialized to list_data.bin\n";
     } catch (const std::exception& e) {
         std::cerr << "Error during serialization: " << e.what() << "\n";
@@ -187,7 +187,7 @@ static void seriSinglyLinkedListToBinary(){
     // Загружаем список из файла
     MySinglyLinkedList<std::string> loadedList;
     try {
-        loadedList.loadFromBinaryFile("list_data.bin");
+        loadedList.loadFromBinaryFile("seriTest/list_data.bin");
         std::cout << "Deserialized list: ";
         loadedList.print();
     } catch (const std::exception& e) {
@@ -211,12 +211,12 @@ static void seriDoublyLinkedListToBinary(){
         list.print();
 
         // Сериализация
-        list.saveToBinaryFile("dlist_data.bin");
+        list.saveToBinaryFile("seriTest/dlist_data.bin");
         std::cout << "Dlist has been serialized to dlist_data.bin\n";
 
         // Десериализация
         MyDoublyLinkedList<std::string> loadedList;
-        loadedList.loadFromBinaryFile("dlist_data.bin");
+        loadedList.loadFromBinaryFile("seriTest/dlist_data.bin");
 
         std::cout << "Deserialized dlist: ";
         loadedList.print();
@@ -240,10 +240,10 @@ static void seriHashMapToBinary(){
         hashMap.print();
 
         std::cout << "HashMap has been serialized to data.bin" << std::endl;
-        hashMap.saveToBinaryFile("data.bin");
+        hashMap.saveToBinaryFile("seriTest/data.bin");
 
         MyHashMap<std::string, int> loadedHashMap;
-        loadedHashMap.loadFromBinaryFile("data.bin");
+        loadedHashMap.loadFromBinaryFile("seriTest/data.bin");
 
         std::cout << "Loaded hashmap:" << std::endl;
         loadedHashMap.print();

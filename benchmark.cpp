@@ -729,7 +729,7 @@ static void BM_DeserializeStack(benchmark::State& state) {
 BENCHMARK(BM_DeserializeStack)->Range(10000, 10000);
 
 // Benchmark для метода print
-static void BM_MyStack_Print(benchmark::State& state) {
+static void BM_MyStack_PrintSize(benchmark::State& state) {
     MyStack<int> myStack;
     suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
@@ -737,44 +737,17 @@ static void BM_MyStack_Print(benchmark::State& state) {
     }
     for (auto _ : state) {
         myStack.print(); // Печать содержимого
+        myStack.size(); // Получение размера
     }
     myStack.clear(); // Очищаем стек
     myStack.print(); // Печать содержимого
     restoreOutput();
 
 }
-BENCHMARK(BM_MyStack_Print)->Range(10000, 10000);
+BENCHMARK(BM_MyStack_PrintSize)->Range(10000, 10000);
 
-// Benchmark для метода size
-static void BM_MyStack_Size(benchmark::State& state) {
-    MyStack<int> myStack;
-    suppressOutput();
-    for (int i = 0; i < state.range(0); ++i) {
-        myStack.SPUSH(i); // Заполняем стек
-    }
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(myStack.size()); // Получение размера
-    }
-    restoreOutput();
-
-}
-BENCHMARK(BM_MyStack_Size)->Range(10000, 10000);
 
 // ==== Benchmarks for MySinglyLinkedList ====
-
-// Benchmark для метода LPUSHHEAD
-static void BM_MySinglyLinkedList_LPUSHHEAD(benchmark::State& state) {
-    MySinglyLinkedList<int> list;
-    suppressOutput();
-    for (auto _ : state) {
-        for (int i = 0; i < state.range(0); ++i) {
-            list.LPUSHHEAD(i);
-        }
-    }
-    restoreOutput();
-
-}
-BENCHMARK(BM_MySinglyLinkedList_LPUSHHEAD)->Range(10000, 10000);
 
 // Benchmark для метода LPUSHTAIL
 static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
@@ -789,6 +762,22 @@ static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
 
 }
 BENCHMARK(BM_MySinglyLinkedList_LPUSHTAIL)->Range(10000, 10000);
+
+static void BM_MySinglyLinkedList_SaveLoadToBinary(benchmark::State& state) {
+    MySinglyLinkedList<std::string> list;
+    suppressOutput();
+    for (int i = 0; i < state.range(0); ++i) {
+        list.LPUSHTAIL("key" + std::to_string(i));
+    }
+    MySinglyLinkedList<std::string> loadedList;
+    for (auto _ : state) {
+        list.saveToBinaryFile("seriTest/list_data.bin");
+        loadedList.saveToBinaryFile("seriTest/list_data");
+    }
+
+    restoreOutput();
+}
+BENCHMARK(BM_MySinglyLinkedList_SaveLoadToBinary)->Range(10000, 10000);
 
 // Benchmark для метода LDELHEAD
 static void BM_MySinglyLinkedList_LDELHEAD(benchmark::State& state) {
@@ -830,7 +819,7 @@ static void BM_MySinglyLinkedList_LDEL(benchmark::State& state) {
         MySinglyLinkedList<int> list;
         // Заполнение списка
         for (int i = 0; i < state.range(0); ++i) {
-            list.LPUSHTAIL(i);
+            list.LPUSHHEAD(i);
         }
 
         // Удаление элементов по индексу (удаляем элементы в случайных местах)

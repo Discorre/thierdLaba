@@ -1,0 +1,26 @@
+@startuml
+
+class MyVector<T> {
+    -T* data
+    -int capacity
+    -int length
+    +MyVector(int size = 10)
+    +~MyVector()
+    +void push_back(const T& element)
+    +void insert(int index, const T& element)
+    +void erase(int index)
+    +T& get(int index)
+    +const T& get(int index) const
+    +void set(int index, const T& element)
+    +void resize()
+    +int size() const
+    +void print() const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void loadFromBinaryFile(const std::string& filename)
+    +T* begin()
+    +T* end()
+    +const T* begin() const
+    +const T* end() const
+}
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+
+class MyArray<T> {
+    -T* data
+    -int capacity
+    -int length
+    +MyArray(int size = 1)
+    +~MyArray()
+    +void MPUSH(const T& element)
+    +void MPUSH(int index, const T& element)
+    +void MDEL(int index)
+    +T& MGET(int index)
+    +const T& MGET(int index) const
+    +void MRESET(int index, const T& element)
+    +void resize()
+    +int lengtharr() const
+    +void saveToFile(const std::string& filename) const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void clear()
+    +void loadFromFile(const std::string& filename)
+    +void loadFromBinaryFile(const std::string& filename)
+    +void print() const
+}
+
+@enduml

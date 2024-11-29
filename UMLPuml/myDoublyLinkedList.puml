@@ -1,0 +1,34 @@
+@startuml
+
+class MyDoublyLinkedList<T> {
+    -Node* head
+    -Node* tail
+    -size_t size
+    +MyDoublyLinkedList()
+    +~MyDoublyLinkedList()
+    +void LPUSHHEAD(const T& value)
+    +void LPUSHTAIL(const T& value)
+    +void LDELHEAD()
+    +void LDELTAIL()
+    +void LDEL(int index)
+    +bool contains(const T& value) const
+    +T LGET(int index) const
+    +void print() const
+    +size_t getSize() const
+    +void saveToFile(const std::string& filename) const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void loadFromBinaryFile(const std::string& filename)
+    +void loadFromFile(const std::string& filename)
+    +void clear()
+}
+
+class Node<T> {
+    -T data
+    -Node* next
+    -Node* prev
+    +Node(const T& value)
+}
+
+MyDoublyLinkedList "1" *-- "0..*" Node : contains >
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+
+class Queue<T> {
+    -T* data
+    -size_t front
+    -size_t back
+    -size_t capacity
+    -size_t size
+    -void resize()
+    +Queue()
+    +~Queue()
+    +void Q_PUSH(const T& value)
+    +void Q_DEL()
+    +T Q_POP()
+    +size_t getSize() const
+    +bool isEmpty() const
+    +void print() const
+    +void saveToFile(const std::string& filename) const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void loadFromBinaryFile(const std::string& filename)
+    +void loadFromFile(const std::string& filename)
+    +void clear()
+}
+
+@enduml

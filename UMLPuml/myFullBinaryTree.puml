@@ -1,0 +1,29 @@
+@startuml
+
+class FullBinaryTree<T> {
+    -Node<T>* root
+    +FullBinaryTree()
+    +~FullBinaryTree()
+    +void TINSERT(T value)
+    +void TDEL(T value)
+    +bool TGET(T value) const
+    +void print() const
+    +bool isFull() const
+    +void saveToFile(const std::string& filename) const
+    +void loadFromFile(const std::string& filename)
+    +void printRoot() const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void loadFromBinaryFile(const std::string& filename)
+    +Node<T>* getRoot()
+}
+
+class Node<T> {
+    -T data
+    -Node* left
+    -Node* right
+    +Node(T value)
+}
+
+FullBinaryTree "1" *-- "0..*" Node : contains >
+
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+
+class MySinglyLinkedList<T> {
+    -Node* head
+    -Node* tail
+    -size_t size
+    +MySinglyLinkedList()
+    +~MySinglyLinkedList()
+    +void LPUSHHEAD(const T& value)
+    +void LPUSHTAIL(const T& value)
+    +void LDELHEAD()
+    +void LDELTAIL()
+    +void LDEL(int index)
+    +bool contains(const T& value) const
+    +T LGET(int index) const
+    +void saveToBinaryFile(const std::string& filename) const
+    +void loadFromBinaryFile(const std::string& filename)
+    +void print() const
+    +size_t getSize() const
+    +void saveToFile(const std::string& filename) const
+    +void loadFromFile(const std::string& filename)
+    +void clear()
+}
+
+class Node<T> {
+    -T data
+    -Node* next
+    +Node(const T& value)
+}
+
+MySinglyLinkedList "1" *-- "0..*" Node : contains >
+
+@enduml
