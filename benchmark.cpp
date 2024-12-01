@@ -524,8 +524,11 @@ BENCHMARK(BM_Queue_Q_POP)->Range(10000, 10000);
 // Benchmark для проверки пустоты
 static void BM_Queue_isEmpty(benchmark::State& state) {
     Queue<int> queue;
+    for(int i = 0; i < state.range(0); ++i) {
+        queue.Q_PUSH(i); // Заполняем очередь
+    }
     for (auto _ : state) {
-        benchmark::DoNotOptimize(queue.isEmpty()); // Проверяем, пуста ли очередь
+        queue.isEmpty(); // Проверяем, пуста ли очередь
     }
 }
 BENCHMARK(BM_Queue_isEmpty);
@@ -661,14 +664,14 @@ static void BM_MyStack_AllOperations(benchmark::State& state) {
 
 BENCHMARK(BM_MyStack_AllOperations)->Range(10000, 10000);
 
-
 // Benchmark для сохранения стека в файл
 static void BM_MyStack_SaveToFile(benchmark::State& state) {
-    MyStack<int> myStack;
+    MyStack<std::string> myStack;
     for (int i = 0; i < state.range(0); ++i) {
-        myStack.SPUSH(i); // Заполняем стек
+        myStack.SPUSH("key" + std::to_string(i)); // Заполняем стек
     }
     for (auto _ : state) {
+        myStack.size();
         myStack.saveToFile("seriTest/stack_data.txt"); // Сохраняем в файл
     }
 
@@ -677,14 +680,8 @@ BENCHMARK(BM_MyStack_SaveToFile)->Range(10000, 10000);
 
 // Benchmark для загрузки стека из файла
 static void BM_MyStack_LoadFromFile(benchmark::State& state) {
-    MyStack<int> myStack;
-    {
-        // Создаем тестовый файл
-        std::ofstream outFile("seriTest/stack_data.txt");
-        for (int i = 0; i < state.range(0); ++i) {
-            outFile << i << "\n";
-        }
-    }
+    MyStack<std::string> myStack;
+
     for (auto _ : state) {
         myStack.loadFromFile("seriTest/stack_data.txt"); // Загружаем из файла
     }
@@ -697,14 +694,14 @@ static void BM_SerializeStack(benchmark::State& state) {
     const std::string filename = "seriTest/stack_data.bin";
 
     // Создаём тестовый стек и заполняем его
-    MyStack<int> stack;
+    MyStack<std::string> stack;
     for (int i = 0; i < state.range(0); ++i) {
-        stack.SPUSH(i);
+        stack.SPUSH("key" + std::to_string(i));
     }
 
     // Записываем стек в файл
     for (auto _ : state) {
-        stack.saveToFile(filename);
+        stack.saveToFileBinary(filename);
     }
 }
 BENCHMARK(BM_SerializeStack)->Range(10000, 10000);
@@ -714,26 +711,21 @@ static void BM_DeserializeStack(benchmark::State& state) {
     const std::string filename = "seriTest/stack_data.bin";
 
     // Сначала создаём стек, сохраняем его и удаляем
-    MyStack<int> stack;
-    for (int i = 0; i < state.range(0); ++i) {
-        stack.SPUSH(i);
-    }
-    stack.saveToFile(filename);
-    MyStack<int> newStack;
-
+    MyStack<std::string> stack;
+    
     // Загружаем стек из файла
     for (auto _ : state) {
-        newStack.loadFromFile(filename);
+        stack.loadFromBinaryFile(filename);
     }
 }
 BENCHMARK(BM_DeserializeStack)->Range(10000, 10000);
 
 // Benchmark для метода print
 static void BM_MyStack_PrintSize(benchmark::State& state) {
-    MyStack<int> myStack;
+    MyStack<std::string> myStack;
     suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
-        myStack.SPUSH(i); // Заполняем стек
+        myStack.SPUSH("key" + std::to_string(i)); // Заполняем стек
     }
     for (auto _ : state) {
         myStack.print(); // Печать содержимого
@@ -751,11 +743,11 @@ BENCHMARK(BM_MyStack_PrintSize)->Range(10000, 10000);
 
 // Benchmark для метода LPUSHTAIL
 static void BM_MySinglyLinkedList_LPUSHTAIL(benchmark::State& state) {
-    MySinglyLinkedList<int> list;
+    MySinglyLinkedList<std::string> list;
     suppressOutput();
     for (auto _ : state) {
         for (int i = 0; i < state.range(0); ++i) {
-            list.LPUSHTAIL(i);
+            list.LPUSHTAIL("key" + std::to_string(i));
         }
     }
     restoreOutput();
@@ -772,7 +764,7 @@ static void BM_MySinglyLinkedList_SaveLoadToBinary(benchmark::State& state) {
     MySinglyLinkedList<std::string> loadedList;
     for (auto _ : state) {
         list.saveToBinaryFile("seriTest/list_data.bin");
-        loadedList.saveToBinaryFile("seriTest/list_data");
+        loadedList.loadFromBinaryFile("seriTest/list_data.bin");
     }
 
     restoreOutput();
@@ -781,10 +773,10 @@ BENCHMARK(BM_MySinglyLinkedList_SaveLoadToBinary)->Range(10000, 10000);
 
 // Benchmark для метода LDELHEAD
 static void BM_MySinglyLinkedList_LDELHEAD(benchmark::State& state) {
-    MySinglyLinkedList<int> list;
+    MySinglyLinkedList<std::string> list;
     suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
-        list.LPUSHTAIL(i);
+        list.LPUSHTAIL("key" + std::to_string(i));
     }
     for (auto _ : state) {
         while (list.getSize() > 0) {
@@ -798,10 +790,10 @@ BENCHMARK(BM_MySinglyLinkedList_LDELHEAD)->Range(10000, 10000);
 
 // Benchmark для метода LDELTAIL
 static void BM_MySinglyLinkedList_LDELTAIL(benchmark::State& state) {
-    MySinglyLinkedList<int> list;
+    MySinglyLinkedList<std::string> list;
     suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
-        list.LPUSHTAIL(i);
+        list.LPUSHTAIL("key" + std::to_string(i));
     }
     for (auto _ : state) {
         while (list.getSize() > 0) {
@@ -816,10 +808,10 @@ BENCHMARK(BM_MySinglyLinkedList_LDELTAIL)->Range(10000, 10000);
 // Benchmark для метода LDEL
 static void BM_MySinglyLinkedList_LDEL(benchmark::State& state) {
     for (auto _ : state) {
-        MySinglyLinkedList<int> list;
+        MySinglyLinkedList<std::string> list;
         // Заполнение списка
         for (int i = 0; i < state.range(0); ++i) {
-            list.LPUSHHEAD(i);
+            list.LPUSHHEAD("key" + std::to_string(i));
         }
 
         // Удаление элементов по индексу (удаляем элементы в случайных местах)
@@ -864,10 +856,10 @@ BENCHMARK(BM_MySinglyLinkedList_LGET)->Range(10000, 10000);
 
 // Benchmark для метода print
 static void BM_MySinglyLinkedList_Print(benchmark::State& state) {
-    MySinglyLinkedList<int> list;
+    MySinglyLinkedList<std::string> list;
     suppressOutput();
     for (int i = 0; i < state.range(0); ++i) {
-        list.LPUSHTAIL(i);
+        list.LPUSHTAIL("key" + std::to_string(i));
     }
     for (auto _ : state) {
         list.print();
@@ -919,14 +911,9 @@ BENCHMARK(BM_Serialization)->Range(10000, 10000);
 // Бенчмарк десериализации
 static void BM_Deserialization(benchmark::State& state) {
     MyDoublyLinkedList<std::string> list;
-    for (int i = 0; i < 10000; ++i) {
-        list.LPUSHTAIL("key" + std::to_string(i));
-    }
-    list.saveToBinaryFile("seriTest/dlist_data.bin");
 
     for (auto _ : state) {
-        MyDoublyLinkedList<std::string> loadedList;
-        loadedList.loadFromBinaryFile("seriTest/dlist_data.bin"); // Десериализация списка
+        list.loadFromBinaryFile("seriTest/dlist_data.bin"); // Десериализация списка
     }
 }
 BENCHMARK(BM_Deserialization)->Range(10000, 10000);
