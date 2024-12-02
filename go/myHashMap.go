@@ -23,8 +23,6 @@ func NewMyHashMap[K comparable, V any](capacity int) *MyHashMap[K, V] {
 	return hm
 }
 
-
-
 // Хеш-функция
 func (hm *MyHashMap[K, V]) hash(key K) int {
 	hashValue := 0

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"encoding/gob"
+	//"encoding/gob"
 	"github.com/stretchr/testify/assert"
 	"strconv"
 )
 
-func init() {
-	gob.Register(&MyHashMap[string, int]{})
-	gob.Register(&MyList[string, int]{})
-}
+// func init() {
+// 	gob.Register(&MyHashMap[string, int]{})
+// 	gob.Register(&MyList[string, int]{})
+// }
 
 
 func BenchmarkHSET(b *testing.B) {
@@ -90,11 +90,8 @@ func BenchmarkMyHashMap_Exception(b *testing.B) {
 	hashMap := NewMyHashMap[string, int](10)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		// Test HSET with nil value
 		hashMap.HSET(fmt.Sprintf("key%d", i), -1)
-		// Test HGET with non-existent key
 		_, _ = hashMap.HGET(fmt.Sprintf("nonexistent_key%d", i))
-		// Test HDEL with non-existent key
 		_ = hashMap.HDEL(fmt.Sprintf("nonexistent_key%d", i))
 	}
 

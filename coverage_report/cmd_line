@@ -1,0 +1,1 @@
+genhtml coverage_report/coverage_filtered.info --output-directory coverage_report --demangle-cpp --show-details

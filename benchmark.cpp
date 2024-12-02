@@ -516,22 +516,11 @@ static void BM_Queue_Q_POP(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(queue.Q_POP()); // Извлекаем элемент
         queue.Q_PUSH(42); // Восстанавливаем очередь
+        queue.isEmpty();
     }
 
 }
 BENCHMARK(BM_Queue_Q_POP)->Range(10000, 10000);
-
-// Benchmark для проверки пустоты
-static void BM_Queue_isEmpty(benchmark::State& state) {
-    Queue<int> queue;
-    for(int i = 0; i < state.range(0); ++i) {
-        queue.Q_PUSH(i); // Заполняем очередь
-    }
-    for (auto _ : state) {
-        queue.isEmpty(); // Проверяем, пуста ли очередь
-    }
-}
-BENCHMARK(BM_Queue_isEmpty);
 
 // Benchmark для получения размера очереди
 static void BM_Queue_getSize(benchmark::State& state) {
